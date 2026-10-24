@@ -33,12 +33,11 @@ const ogImageURL = seo.image?.src ? new URL(seo.image.src, Astro.site).toString(
 
 <html lang="en">
   <head>
-    <BaseLayout url={Astro.url.origin} />
     <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{title}</title>
     <link rel="canonical" href={canonical} />
     <link rel="sitemap" href="/sitemap-index.xml" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="generator" content={Astro.generator} />
     <meta name="description" content={desc} />
     <meta name="keywords" content={keywords} />
@@ -62,6 +61,7 @@ const ogImageURL = seo.image?.src ? new URL(seo.image.src, Astro.site).toString(
     <meta name="twitter:image:height" content={seo.image?.height.toString()} />
     <meta name="twitter:image:type" content={seo.image?.format} />
     <meta name="twitter:image:alt" content={title} />
+    <BaseLayout url={Astro.url.origin} />
   </head>
   <body class="min-h-screen scanline-bg">
     <!-- Google Tag Manager (noscript) -->

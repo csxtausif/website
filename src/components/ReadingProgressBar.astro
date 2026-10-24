@@ -1,0 +1,296 @@
+---
+import { Zap } from 'lucide-react';
+
+interface Props {
+  totalMinutes?: number;
+}
+
+const { totalMinutes = 5 } = Astro.props;
+---
+
+<!-- Fixed Top Progress Line -->
+<div
+  id="reading-progress-track"
+  class="fixed top-0 left-0 right-0 z-50 h-[3px] bg-zinc-900/40 pointer-events-none"
+>
+  <div
+    id="reading-progress-fill"
+    class="h-full bg-linear-to-r from-lime-500 via-lime-400 to-emerald-400 w-0 transition-all duration-75 shadow-[0_0_8px_rgba(163,230,53,0.6)]"
+  >
+  </div>
+</div>
+
+<!-- Zen Notification Toast -->
+<div
+  id="zen-toast"
+  class="fixed top-5 left-1/2 -translate-x-1/2 z-50 pointer-events-none opacity-0 translate-y-2 transition-all duration-300 bg-lime-400 text-stone-950 font-mono text-xs font-bold px-4 py-1.5 rounded-full shadow-2xl flex items-center gap-2 whitespace-nowrap"
+>
+  <span class="inline-flex items-center gap-1.5"><Zap size={13} className="fill-stone-950 text-stone-950" /> ZEN FOCUS MODE</span>
+  <span class="text-stone-800 text-[10px] font-normal">&bull; Press ESC or Z to restore</span>
+</div>
+
+<!-- Floating Zen Reading Dock (Fixed slim height, zero layout shift) -->
+<div
+  id="zen-dock"
+  class="fixed bottom-6 right-6 z-50 flex items-center h-10 bg-zinc-950/90 backdrop-blur-xl border border-zinc-800 shadow-[0_8px_32px_rgba(0,0,0,0.7)] rounded-full px-3 gap-2.5 text-xs font-mono text-zinc-300 transition-all duration-300 hover:border-lime-400/40 whitespace-nowrap select-none"
+>
+  <!-- Time Left Counter -->
+  <div
+    class="flex items-center gap-1.5 text-lime-400 font-semibold border-r border-zinc-800 pr-2.5 shrink-0"
+  >
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="13"
+      height="13"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2.5"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      class="animate-pulse"
+    >
+      <circle cx="12" cy="12" r="10"></circle>
+      <polyline points="12 6 12 12 16 14"></polyline>
+    </svg>
+    <span id="reading-time-text">{totalMinutes}m left</span>
+  </div>
+
+  <!-- Zen / Focus Mode Button (Single-line, stable height) -->
+  <button
+    id="zen-mode-btn"
+    type="button"
+    class="flex items-center justify-center transition-all cursor-pointer select-none py-1 px-2.5 rounded-full text-zinc-300 hover:text-white hover:bg-zinc-800/60 whitespace-nowrap leading-none shrink-0"
+    title="Toggle Zen Focus Mode (Shortcut: Z or ESC)"
+    aria-label="Toggle Zen Mode"
+  >
+    <span id="zen-btn-label" class="text-[11px] font-bold whitespace-nowrap">[Z] ZEN</span>
+  </button>
+
+  <!-- Font Size Scaler -->
+  <button
+    id="font-size-btn"
+    type="button"
+    class="flex items-center justify-center hover:text-lime-400 transition-colors cursor-pointer select-none py-1 px-1.5 rounded-sm border-l border-zinc-800 pl-2.5 shrink-0"
+    title="Cycle Reading Font Size (Normal / Large / Extra Large)"
+    aria-label="Adjust font size"
+  >
+    <span id="font-size-icon" class="font-bold">A+</span>
+  </button>
+
+  <!-- Copy Article Link -->
+  <button
+    id="copy-link-btn"
+    type="button"
+    class="flex items-center justify-center hover:text-lime-400 transition-colors cursor-pointer p-1 rounded-sm border-l border-zinc-800 pl-2.5 shrink-0"
+    title="Copy Article Link to Clipboard"
+    aria-label="Copy Article Link"
+  >
+    <svg
+      id="copy-icon"
+      xmlns="http://www.w3.org/2000/svg"
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    >
+      <rect width="14" height="14" x="8" y="8" rx="2" ry="2"></rect>
+      <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"></path>
+    </svg>
+    <svg
+      id="check-icon"
+      xmlns="http://www.w3.org/2000/svg"
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2.5"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      class="hidden text-lime-400"
+    >
+      <path d="M20 6 9 17l-5-5"></path>
+    </svg>
+  </button>
+</div>
+
+<script define:vars={{ totalMinutes }}>
+  // Global Zen mode toggle with state enforcement
+  function toggleZenMode(forceState) {
+    const isCurrentlyZen = document.body.classList.contains("zen-mode-active");
+    const nextState = forceState !== undefined ? forceState : !isCurrentlyZen;
+
+    document.body.classList.toggle("zen-mode-active", nextState);
+    document.documentElement.classList.toggle("zen-mode-active", nextState);
+
+    const zenBtn = document.getElementById("zen-mode-btn");
+    const zenBtnLabel = document.getElementById("zen-btn-label");
+    const zenToast = document.getElementById("zen-toast");
+
+    if (nextState) {
+      if (zenBtn) {
+        zenBtn.className =
+          "flex items-center justify-center transition-all cursor-pointer select-none py-1 px-2.5 rounded-full bg-lime-400 text-stone-950 font-bold shadow-[0_0_12px_rgba(163,230,53,0.8)] whitespace-nowrap leading-none shrink-0";
+      }
+      if (zenBtnLabel) {
+        zenBtnLabel.textContent = "[Z] EXIT";
+      }
+
+      if (zenToast) {
+        zenToast.classList.remove("opacity-0", "translate-y-2");
+        zenToast.classList.add("opacity-100", "translate-y-0");
+        clearTimeout(window._zenToastTimer);
+        window._zenToastTimer = setTimeout(() => {
+          zenToast.classList.add("opacity-0", "translate-y-2");
+          zenToast.classList.remove("opacity-100", "translate-y-0");
+        }, 2500);
+      }
+    } else {
+      if (zenBtn) {
+        zenBtn.className =
+          "flex items-center justify-center transition-all cursor-pointer select-none py-1 px-2.5 rounded-full text-zinc-300 hover:text-white hover:bg-zinc-800/60 whitespace-nowrap leading-none shrink-0";
+      }
+      if (zenBtnLabel) {
+        zenBtnLabel.textContent = "[Z] ZEN";
+      }
+      if (zenToast) {
+        zenToast.classList.add("opacity-0", "translate-y-2");
+        zenToast.classList.remove("opacity-100", "translate-y-0");
+      }
+    }
+  }
+
+  // Bind single global keydown listener (guaranteed singleton)
+  if (!window._zenKeydownBound) {
+    window._zenKeydownBound = true;
+    window.addEventListener("keydown", (e) => {
+      const target = e.target;
+      if (
+        target &&
+        (["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName) ||
+          target.isContentEditable)
+      ) {
+        return;
+      }
+
+      if (e.key === "z" || e.key === "Z") {
+        e.preventDefault();
+        toggleZenMode();
+      } else if (
+        e.key === "Escape" &&
+        document.body.classList.contains("zen-mode-active")
+      ) {
+        e.preventDefault();
+        toggleZenMode(false);
+      }
+    });
+  }
+
+  function setupReadingProgress() {
+    const progressFill = document.getElementById("reading-progress-fill");
+    const timeRemainingText = document.getElementById("reading-time-text");
+    const zenBtn = document.getElementById("zen-mode-btn");
+    const fontBtn = document.getElementById("font-size-btn");
+    const fontSizeIcon = document.getElementById("font-size-icon");
+    const copyBtn = document.getElementById("copy-link-btn");
+    const copyIcon = document.getElementById("copy-icon");
+    const checkIcon = document.getElementById("check-icon");
+
+    // Reset Zen mode on page transition
+    toggleZenMode(false);
+
+    // Click handler for Zen Mode (assigned directly to avoid stacking)
+    if (zenBtn) {
+      zenBtn.onclick = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        toggleZenMode();
+      };
+    }
+
+    // Scroll progress handler
+    const onScroll = () => {
+      const scrollY = window.scrollY;
+      const docHeight =
+        document.documentElement.scrollHeight - window.innerHeight;
+
+      if (docHeight <= 0) return;
+
+      const progress = Math.min(Math.max(scrollY / docHeight, 0), 1);
+      const percentage = Math.round(progress * 100);
+
+      if (progressFill) {
+        progressFill.style.width = `${percentage}%`;
+      }
+
+      if (timeRemainingText) {
+        if (progress >= 0.96) {
+          timeRemainingText.textContent = "Complete!";
+        } else {
+          const remainingMinutes = Math.max(
+            1,
+            Math.ceil((1 - progress) * totalMinutes)
+          );
+          timeRemainingText.textContent = `${remainingMinutes}m left`;
+        }
+      }
+    };
+
+    window.removeEventListener("scroll", window._readingProgressScroll);
+    window._readingProgressScroll = onScroll;
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+
+    // Font Size Scaler
+    const fontSizes = ["text-base", "text-lg", "text-xl"];
+    let currentFontIdx = 0;
+    const proseEl = document.querySelector(".prose");
+
+    if (fontBtn) {
+      fontBtn.onclick = (e) => {
+        e.preventDefault();
+        if (!proseEl) return;
+        proseEl.classList.remove(fontSizes[currentFontIdx]);
+        currentFontIdx = (currentFontIdx + 1) % fontSizes.length;
+        proseEl.classList.add(fontSizes[currentFontIdx]);
+        if (fontSizeIcon) {
+          fontSizeIcon.textContent =
+            currentFontIdx === 0 ? "A+" : currentFontIdx === 1 ? "A++" : "A";
+        }
+      };
+    }
+
+    // Copy Article Link
+    if (copyBtn) {
+      copyBtn.onclick = async (e) => {
+        e.preventDefault();
+        try {
+          await navigator.clipboard.writeText(window.location.href);
+          if (copyIcon && checkIcon) {
+            copyIcon.classList.add("hidden");
+            checkIcon.classList.remove("hidden");
+            setTimeout(() => {
+              copyIcon.classList.remove("hidden");
+              checkIcon.classList.add("hidden");
+            }, 2000);
+          }
+        } catch (err) {
+          console.error("Failed to copy link:", err);
+        }
+      };
+    }
+  }
+
+  // Astro View Transitions lifecycle binding
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", setupReadingProgress, { once: true });
+  } else {
+    setupReadingProgress();
+  }
+  document.addEventListener("astro:page-load", setupReadingProgress);
+</script>

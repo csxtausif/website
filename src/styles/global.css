@@ -2,7 +2,7 @@
 @plugin "@tailwindcss/typography";
 
 body {
-  overflow-x: hidden;
+  overflow-x: clip;
 }
 .press-start-2p-regular {
   font-family: "Press Start 2P", system-ui;
@@ -16,7 +16,7 @@ body {
 .scanline-bg {
   position: relative;
   background-color: #000000; /* Dark base color */
-  overflow-y: auto;
+  overflow-x: clip;
   -webkit-overflow-scrolling: touch;
 }
 
@@ -82,8 +82,106 @@ html.day-mode .scanline-bg::before {
 
 html.day-mode img,
 html.day-mode video {
-  /* Re-invert images if necessary, wait, we are NOT using CSS filter invert on the whole body, 
-     we are just remapping CSS variables, so images won't be inverted!
-     Hence we don't need any image override. */
+  /* Re-invert images if necessary */
 }
 
+/* Zen Reading & Article UI Enhancements */
+h1[id], h2[id], h3[id], h4[id], h5[id], h6[id] {
+  scroll-margin-top: 6rem;
+}
+
+/* Zen Mode Active (Distraction-Free Immersion) */
+html.zen-mode-active,
+body.zen-mode-active {
+  background-color: #070708 !important;
+}
+
+body.zen-mode-active .scanline-bg::before {
+  display: none !important;
+}
+
+body.zen-mode-active .modern-nav,
+body.zen-mode-active .nav,
+body.zen-mode-active .breadcrumb-nav,
+body.zen-mode-active .article-meta-strip,
+body.zen-mode-active .toc-desktop,
+body.zen-mode-active .toc-mobile,
+body.zen-mode-active .tldr-box,
+body.zen-mode-active .article-footer {
+  display: none !important;
+}
+
+body.zen-mode-active .reading-content-grid {
+  justify-content: center !important;
+}
+
+body.zen-mode-active .reading-column {
+  max-width: 68ch !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+
+/* Prose blockquote custom styling */
+.prose blockquote {
+  border-left-color: var(--color-lime-400);
+  background-color: rgba(24, 24, 27, 0.4);
+  padding: 0.75rem 1.25rem;
+  border-radius: 0 0.25rem 0.25rem 0;
+  font-style: italic;
+}
+
+/* Standalone Embedded Figures in Prose */
+.prose > p > img,
+.prose > img,
+.prose figure img {
+  display: block;
+  max-width: 440px;
+  max-height: 380px;
+  width: auto;
+  height: auto;
+  margin: 1.75rem auto;
+  object-fit: contain;
+  border-radius: 0.5rem;
+  background-color: #0c0d0e;
+  border: 1px solid #27272a;
+  padding: 0.5rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.7);
+  cursor: zoom-in;
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.prose > p > img:hover,
+.prose > img:hover,
+.prose figure img:hover {
+  border-color: rgba(163, 230, 53, 0.6);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.9), 0 0 15px rgba(163, 230, 53, 0.15);
+}
+
+@media (max-width: 640px) {
+  .prose > p > img,
+  .prose > img,
+  .prose figure img {
+    max-width: 88%;
+    max-height: 280px;
+    margin: 1.25rem auto;
+    padding: 0.375rem;
+  }
+}
+
+/* Bento Gallery Image Reset - Guarantee zero leakage & zero overlapping */
+.bento-gallery img,
+.bento-card img {
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  background-color: transparent !important;
+  object-fit: cover !important;
+}

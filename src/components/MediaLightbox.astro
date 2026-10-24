@@ -1,0 +1,129 @@
+---
+// Client-side image lightbox component for prose diagrams, rough notes, and illustrations.
+---
+
+<div
+  id="media-lightbox"
+  class="fixed inset-0 z-50 hidden bg-black/95 backdrop-blur-md items-center justify-center p-4 sm:p-8 select-none transition-opacity duration-200 cursor-zoom-out"
+  role="dialog"
+  aria-modal="true"
+  aria-label="Image Lightbox Viewer"
+>
+  <!-- Top bar controls -->
+  <div class="absolute top-4 right-4 sm:top-6 sm:right-6 flex items-center gap-3 z-50">
+    <span class="text-xs font-mono text-zinc-400 hidden sm:inline-block">
+      Press <kbd class="px-1.5 py-0.5 rounded bg-zinc-800 text-lime-400 border border-zinc-700">ESC</kbd> to close
+    </span>
+    <button
+      id="lightbox-close-btn"
+      class="p-2 rounded-full bg-zinc-900 border border-zinc-700 text-zinc-300 hover:text-white hover:border-lime-400 transition-colors cursor-pointer"
+      aria-label="Close Lightbox"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="18"
+        height="18"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+      </svg>
+    </button>
+  </div>
+
+  <!-- Center image container -->
+  <div class="relative max-h-[85vh] max-w-[90vw] flex flex-col items-center justify-center">
+    <img
+      id="lightbox-img"
+      src=""
+      alt=""
+      class="max-h-[80vh] max-w-[90vw] object-contain rounded-md border border-zinc-800 shadow-[0_0_50px_rgba(0,0,0,0.9)] transition-transform duration-200"
+    />
+    <p
+      id="lightbox-caption"
+      class="text-xs font-mono text-zinc-400 text-center mt-3 max-w-xl truncate px-2"
+    >
+    </p>
+  </div>
+</div>
+
+<script>
+  function setupLightbox() {
+    const lightbox = document.getElementById("media-lightbox");
+    const lightboxImg = document.getElementById("lightbox-img") as HTMLImageElement;
+    const lightboxCaption = document.getElementById("lightbox-caption");
+    const closeBtn = document.getElementById("lightbox-close-btn");
+
+    if (!lightbox || !lightboxImg) return;
+
+    const openWithImage = (src: string, alt: string) => {
+      lightboxImg.src = src;
+      lightboxImg.alt = alt || "Enlarged Image";
+      if (lightboxCaption) {
+        lightboxCaption.textContent = alt || "";
+      }
+      lightbox.classList.remove("hidden");
+      lightbox.classList.add("flex");
+      document.body.style.overflow = "hidden";
+    };
+
+    // 1. Prose Images
+    const proseImages = document.querySelectorAll(".prose img:not(.bento-gallery img)");
+    proseImages.forEach((img) => {
+      const htmlImg = img as HTMLImageElement;
+      htmlImg.addEventListener("click", () => {
+        const fullSrc = htmlImg.currentSrc || htmlImg.src;
+        openWithImage(fullSrc, htmlImg.alt);
+      });
+    });
+
+    // 2. Bento Gallery Cards & Images
+    const bentoCards = document.querySelectorAll(".bento-card");
+    bentoCards.forEach((card) => {
+      const img = card.querySelector("img") as HTMLImageElement;
+      if (!img) return;
+      card.addEventListener("click", () => {
+        const fullSrc = img.currentSrc || img.src;
+        const caption =
+          card.querySelector("p")?.textContent || img.alt || "Gallery Image";
+        openWithImage(fullSrc, caption);
+      });
+    });
+
+    const closeLightbox = () => {
+      lightbox.classList.add("hidden");
+      lightbox.classList.remove("flex");
+      lightboxImg.src = "";
+      document.body.style.overflow = "";
+    };
+
+    closeBtn?.addEventListener("click", (e) => {
+      e.stopPropagation();
+      closeLightbox();
+    });
+
+    lightbox.addEventListener("click", (e) => {
+      if (e.target === lightbox || e.target === lightbox.firstElementChild) {
+        closeLightbox();
+      }
+    });
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && !lightbox.classList.contains("hidden")) {
+        closeLightbox();
+      }
+    });
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", setupLightbox);
+  } else {
+    setupLightbox();
+  }
+  document.addEventListener("astro:page-load", setupLightbox);
+</script>
