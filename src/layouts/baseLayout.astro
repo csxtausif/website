@@ -3,7 +3,7 @@ import { getSEOForPath } from "@utils/seoConfig";
 const seo = getSEOForPath(Astro.url.pathname);
 import pfp from "@res/images/pfp.webp";
 import { ClientRouter } from 'astro:transitions';
-
+import Analytics from '@vercel/analytics/astro'
 const personSchema = {
   "@context": "https://schema.org",
   "@type": "Person",
@@ -29,51 +29,15 @@ const personSchema = {
   sameAs: [
     "https://github.com/buildwithtausif",
     "https://www.linkedin.com/in/buildwithtausif/",
-    "https://x.com/buildwithtausif",
+    "https://x.com/csxtausif",
     "https://buildwithtausif.vercel.app",
-    "https://peerlist.io/buildwithtausif",
-    "https://bsky.app/profile/buildwithtausif.in",
-    "https://www.reddit.com/user/opsX9/",
+    "https://www.instagram.com/csxtausif/"
   ],
-  alternateName: ["tausif alam", "buildwithtausif", "tausif", "bsh_tausif"],
+  alternateName: ["tausif alam", "buildwithtausif", "tausif", "csxtausif"],
   nationality: "Indian",
   knowsLanguage: "English, Hindi",
   knowsAbout: [
-    "Node.js",
-    "PostgreSQL",
-    "MySQL",
-    "MongoDB",
-    "Backend Development",
-    "Full Stack Development",
-    "System Design",
-    "Web Development",
-    "JavaScript",
-    "Typescript",
-    "React.js",
-    "Next.js",
-    "Astro",
-    "Tailwind Css",
-    "Git",
-    "Linux",
-    "Docker",
-    "Java",
-    "Python",
-    "DSA",
-    "Problem Solving",
-    "Data Structures",
-    "Algorithms",
-    "Computer Networks",
-    "Operating System",
-    "Database Management System",
-    "Software Engineering",
-    "API Development",
-    "Microservices",
-    "RESTful APIs",
-    "GraphQL",
-    "CI/CD",
-    "DevOps",
-    "SEO",
-    "Technical SEO",
+    ""
   ],
   alumniOf: [
     {
@@ -87,19 +51,10 @@ const personSchema = {
       sameAs: "https://ipu.ac.in/",
     },
   ],
-  address: {
-    "@type": "PostalAddress",
-    addressLocality: "New Delhi",
-    addressRegion: "DL",
-    postalCode: "110033",
-    addressCountry: "IN",
-    streetAddress:
-      "Adarsh Nagar, Azadpur, Model Town, Netaji Subhash Place - NSP, Wazirpur, Delhi",
-  },
   image: `${Astro.props.url}${pfp.src}`,
 };
 ---
-
+<Analytics/>
 <!-- Google Tag Manager -->
 <script is:inline>
   (function (w, d, s, l, i) {
