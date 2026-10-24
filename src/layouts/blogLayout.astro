@@ -12,17 +12,20 @@ interface Props {
   desc?: string;
   keywords?: string;
   image?: import("astro").ImageMetadata;
+  imageUrl?: string;
 }
 const {
   title = seo.title,
   desc = seo.desc,
   keywords = seo.keywords,
   image = seo.image,
+  imageUrl = seo.imageUrl,
 } = Astro.props as Props;
 // canonnical url for seo
 const pathname = Astro.url.pathname.replace(/\/$/, "");
-const canonical = new URL(pathname || "/", Astro.site).toString();
-const ogImageURL = image?.src ? new URL(image.src, Astro.site).toString() : undefined;
+const siteOrigin = Astro.url.origin && Astro.url.origin !== "null" ? Astro.url.origin : (Astro.site ? Astro.site.toString() : "https://www.buildwithtausif.in");
+const canonical = new URL(pathname || "/", siteOrigin).toString();
+const ogImageURL = imageUrl ? new URL(imageUrl, siteOrigin).toString() : (image?.src ? new URL(image.src, siteOrigin).toString() : undefined);
 ---
 
 <html lang="en">
@@ -43,18 +46,14 @@ const ogImageURL = image?.src ? new URL(image.src, Astro.site).toString() : unde
     <meta property="og:locale" content="en_US" />
     <!-- conditional og:image for project and blog pages -->
     <meta property="og:image" content={ogImageURL} />
-    <meta property="og:image:width" content={image?.width.toString()} />
-    <meta property="og:image:height" content={image?.height.toString()} />
-    <meta property="og:image:type" content={image?.format} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:type" content="image/png" />
     <!-- twitter card -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={desc} />
     <meta name="twitter:image" content={ogImageURL} />
-    <meta name="twitter:image:width" content={image?.width.toString()} />
-    <meta name="twitter:image:height" content={image?.height.toString()} />
-    <meta name="twitter:image:type" content={image?.format} />
-    <meta name="twitter:image:alt" content={title} />
     <BaseLayout url={Astro.url.origin} />
   </head>
   <body class="scanline-bg">
