@@ -1,107 +1,186 @@
 ---
-import { getCollection, type CollectionEntry } from "astro:content";
+import { getCollection } from "astro:content";
 import createSlug from "@utils/createSlug";
+import formatRelativeTime from "@utils/relativeTime";
+import countReadingMinutes from "@utils/readingMin";
 
+// Query and sort both collections by publication date (newest first)
 const allBlogPosts = await getCollection("blog");
 const allProjects = await getCollection("project");
 
-let displayPosts: (CollectionEntry<"blog"> | CollectionEntry<"project">)[] =
-  allBlogPosts
-    .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
-    .slice(0, 2);
+const articles = allBlogPosts
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
+  .slice(0, 3);
 
-let isProject = false;
-if (displayPosts.length === 0) {
-  displayPosts = allProjects
-    .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
-    .slice(0, 1);
-  isProject = true;
-}
+const projectUpdates = allProjects
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
+  .slice(0, 3);
+
+const hasContent = articles.length > 0 || projectUpdates.length > 0;
 ---
 
 {
-  displayPosts.length > 0 && (
-    <>
-      <h1 class="text-lg mb-4 text-lime-400 text-center">
-        <span class="press-start-2p-regular">Articles</span>
-      </h1>
-      <div class="flex flex-col gap-4 items-center">
-        {displayPosts.map((post) => (
-          <a
-            href={`/${isProject ? "project" : "blog"}/${createSlug(post.id)}`}
-            class="block no-underline"
+  hasContent && (
+    <div class="featured-widget flex flex-col gap-4 w-full m-2 mb-6">
+      <!-- Section 1: Articles Accordion (Open by Default) -->
+      <details
+        open
+        class="group/articles rounded-sm border border-zinc-800 bg-zinc-950/40 overflow-hidden shadow-lg transition-all"
+      >
+        <summary class="flex items-center justify-between px-3.5 py-3 cursor-pointer bg-zinc-900/70 hover:bg-zinc-900/90 border-b border-zinc-800/80 transition-colors select-none">
+          <div class="flex items-center gap-2">
+            <span class="text-lime-400 font-mono font-bold text-xs uppercase tracking-wider">
+              / Articles
+            </span>
+            <span class="text-[11px] font-mono text-zinc-500">
+              ({articles.length})
+            </span>
+          </div>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="text-zinc-400 transition-transform duration-200 group-open/articles:rotate-180"
           >
-            <div
-              class="card-board"
-              data-topic={isProject ? post.data.description : post.data.title}
-            >
-              <div class="topic-name">
-                {isProject ? post.data.description : post.data.title}
-              </div>
-            </div>
-          </a>
-        ))}
-      </div>
-    </>
+            <path d="m6 9 6 6 6-6" />
+          </svg>
+        </summary>
+
+        <div class="divide-y divide-zinc-800/70">
+          {articles.length > 0 ? (
+            articles.map((post) => (
+              <a
+                href={`/blog/${createSlug(post.id)}`}
+                class="group/item block p-3.5 hover:bg-white/[0.03] transition-colors relative"
+              >
+                <h3 class="text-[13px] sm:text-sm font-semibold text-neutral-200 group-hover/item:text-lime-400 transition-colors leading-snug line-clamp-2">
+                  {post.data.title}
+                </h3>
+                {post.data.description && (
+                  <p class="text-xs text-neutral-400 line-clamp-2 mt-1.5 leading-relaxed font-sans font-normal">
+                    {post.data.description}
+                  </p>
+                )}
+                <div class="flex flex-wrap items-center gap-2 mt-2.5 text-[10px] font-mono tracking-wider text-zinc-500 uppercase">
+                  <span class="text-lime-400/90 font-medium">
+                    {formatRelativeTime(post.data.pubDate)}
+                  </span>
+                  <span>&bull;</span>
+                  <span>
+                    {countReadingMinutes(
+                      post.body?.match(/\S+/g)?.length || 0
+                    )}{" "}
+                    MIN READ
+                  </span>
+                  {post.data.tags && post.data.tags[0] && (
+                    <>
+                      <span>&bull;</span>
+                      <span class="truncate max-w-[110px]">
+                        {post.data.tags[0]}
+                      </span>
+                    </>
+                  )}
+                </div>
+              </a>
+            ))
+          ) : (
+            <p class="p-3.5 text-xs text-zinc-500 font-mono italic">
+              No articles published yet.
+            </p>
+          )}
+        </div>
+      </details>
+
+      <!-- Section 2: Project Updates Accordion (Open by Default) -->
+      <details
+        open
+        class="group/projects rounded-sm border border-zinc-800 bg-zinc-950/40 overflow-hidden shadow-lg transition-all"
+      >
+        <summary class="flex items-center justify-between px-3.5 py-3 cursor-pointer bg-zinc-900/70 hover:bg-zinc-900/90 border-b border-zinc-800/80 transition-colors select-none">
+          <div class="flex items-center gap-2">
+            <span class="text-lime-400 font-mono font-bold text-xs uppercase tracking-wider">
+              / Project Updates
+            </span>
+            <span class="text-[11px] font-mono text-zinc-500">
+              ({projectUpdates.length})
+            </span>
+          </div>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="text-zinc-400 transition-transform duration-200 group-open/projects:rotate-180"
+          >
+            <path d="m6 9 6 6 6-6" />
+          </svg>
+        </summary>
+
+        <div class="divide-y divide-zinc-800/70">
+          {projectUpdates.length > 0 ? (
+            projectUpdates.map((project) => (
+              <a
+                href={`/project/${createSlug(project.id)}`}
+                class="group/item block p-3.5 hover:bg-white/[0.03] transition-colors relative"
+              >
+                <div class="flex items-start justify-between gap-2">
+                  <h3 class="text-[13px] sm:text-sm font-semibold text-neutral-200 group-hover/item:text-lime-400 transition-colors leading-snug line-clamp-2">
+                    {project.data.title}
+                  </h3>
+                  {project.data.version && (
+                    <span class="inline-flex items-center rounded-sm bg-zinc-800 px-1.5 py-0.5 text-[9px] font-mono font-semibold text-lime-400 ring-1 ring-inset ring-lime-400/20 shrink-0">
+                      v{project.data.version}
+                    </span>
+                  )}
+                </div>
+                {project.data.description && (
+                  <p class="text-xs text-neutral-400 line-clamp-2 mt-1.5 leading-relaxed font-sans font-normal">
+                    {project.data.description}
+                  </p>
+                )}
+                <div class="flex flex-wrap items-center gap-2 mt-2.5 text-[10px] font-mono tracking-wider text-zinc-500 uppercase">
+                  <span class="text-lime-400/90 font-medium">
+                    {formatRelativeTime(project.data.pubDate)}
+                  </span>
+                  {project.data.tags && project.data.tags[0] && (
+                    <>
+                      <span>&bull;</span>
+                      <span class="truncate max-w-[110px]">
+                        {project.data.tags[0]}
+                      </span>
+                    </>
+                  )}
+                </div>
+              </a>
+            ))
+          ) : (
+            <p class="p-3.5 text-xs text-zinc-500 font-mono italic">
+              No project updates yet.
+            </p>
+          )}
+        </div>
+      </details>
+    </div>
   )
 }
+
 <style>
-  .card-board {
-    border: 2px solid oklch(84.1% 0.238 128.85);
-    width: 320px;
-    min-height: 64px;
-    border-radius: 5px;
-    border-right-width: 10px;
-    border-left-width: 10px;
-    color: white;
-    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-    cursor: pointer;
-    position: relative;
-    overflow: hidden;
+  /* Hide the browser default disclosure marker */
+  details > summary {
+    list-style: none;
   }
-  @supports (corner-shape: scoop) {
-    .card-board {
-      corner-shape: scoop;
-    }
-  }
-  .card-board::before {
-    content: attr(data-topic);
-    position: absolute;
-    inset: 0;
-    box-sizing: border-box;
-    background-color: oklch(84.1% 0.238 128.85);
-    color: black;
-    padding: 8px;
-    clip-path: inset(
-      -1px -1px -1px 100%
-    ); /* fully clipped (invisible) by default */
-  }
-  @keyframes growRight {
-    from {
-      clip-path: inset(-1px -1px -1px 100%);
-    }
-    10% {
-      clip-path: inset(-1px -1px -1px 90%);
-    }
-    25% {
-      clip-path: inset(-1px -1px -1px 65%);
-    }
-    55% {
-      clip-path: inset(-1px -1px -1px 35%);
-    }
-    75% {
-      clip-path: inset(-1px -1px -1px 15%);
-    }
-    to {
-      clip-path: inset(-1px -1px -1px -1px);
-    }
-  }
-  .card-board:hover::before {
-    animation: growRight 170ms ease-in forwards;
-  }
-  .topic-name {
-    width: 100%;
-    padding: 8px;
-    box-sizing: border-box;
+  details > summary::-webkit-details-marker {
+    display: none;
   }
 </style>
