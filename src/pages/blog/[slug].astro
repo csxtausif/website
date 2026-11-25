@@ -34,6 +34,9 @@ const readTime = post
   ? post.readTimeMinutes || Math.max(1, countReadingMinutes(parsed.wordCount))
   : 0;
 const relativeDate = post ? formatRelativeTime(post.pubDate) : "";
+const parsedUpdatedAt = post?.updatedAt ? new Date(post.updatedAt) : null;
+const lastUpdatedDate = parsedUpdatedAt && !isNaN(parsedUpdatedAt.getTime()) ? parsedUpdatedAt : null;
+const lastUpdatedRelative = lastUpdatedDate ? formatRelativeTime(lastUpdatedDate) : "";
 
 const seo = post
   ? resolveCmsSeo(
@@ -137,6 +140,21 @@ const seo = post
                 })}
                 <span class="text-lime-400/90 ml-1">({relativeDate})</span>
               </span>
+              {lastUpdatedDate && (
+                <span class="text-zinc-500 text-[11px] block mt-0.5">
+                  LAST UPDATED{" "}
+                  <time datetime={post.updatedAt} class="text-zinc-400">
+                    {lastUpdatedDate.toLocaleDateString("en-US", {
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric",
+                    })}
+                  </time>
+                  {lastUpdatedRelative && (
+                    <span class="text-lime-400/80 ml-1">({lastUpdatedRelative})</span>
+                  )}
+                </span>
+              )}
             </div>
           </div>
 

@@ -32,6 +32,9 @@ const readTime = project
   ? project.readTimeMinutes || Math.max(1, countReadingMinutes(parsed.wordCount))
   : 0;
 const relativeDate = project ? formatRelativeTime(project.pubDate) : "";
+const parsedUpdatedAt = project?.updatedAt ? new Date(project.updatedAt) : null;
+const lastUpdatedDate = parsedUpdatedAt && !isNaN(parsedUpdatedAt.getTime()) ? parsedUpdatedAt : null;
+const lastUpdatedRelative = lastUpdatedDate ? formatRelativeTime(lastUpdatedDate) : "";
 
 const seo = project
   ? resolveCmsSeo(
@@ -167,6 +170,21 @@ const seo = project
                 })}
                 <span class="text-lime-400/90 ml-1">({relativeDate})</span>
               </span>
+              {lastUpdatedDate && (
+                <span class="text-[11px] text-zinc-500">
+                  LAST UPDATED{" "}
+                  <time datetime={project.updatedAt} class="text-zinc-400">
+                    {lastUpdatedDate.toLocaleDateString("en-US", {
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric",
+                    })}
+                  </time>
+                  {lastUpdatedRelative && (
+                    <span class="text-lime-400/80 ml-1">({lastUpdatedRelative})</span>
+                  )}
+                </span>
+              )}
               <span class="text-zinc-500">
                 {readTime} MIN READ
               </span>
