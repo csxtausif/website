@@ -76,8 +76,10 @@
     const proseImages = document.querySelectorAll(".prose img:not(.bento-gallery img)");
     proseImages.forEach((img) => {
       const htmlImg = img as HTMLImageElement;
+      if (htmlImg.dataset.lightboxBound === "true") return;
+      htmlImg.dataset.lightboxBound = "true";
       htmlImg.addEventListener("click", () => {
-        const fullSrc = htmlImg.currentSrc || htmlImg.src;
+        const fullSrc = htmlImg.dataset.fullSrc || htmlImg.currentSrc || htmlImg.src;
         openWithImage(fullSrc, htmlImg.alt);
       });
     });
@@ -85,10 +87,13 @@
     // 2. Bento Gallery Cards & Images
     const bentoCards = document.querySelectorAll(".bento-card");
     bentoCards.forEach((card) => {
+      const htmlCard = card as HTMLElement;
+      if (htmlCard.dataset.lightboxBound === "true") return;
+      htmlCard.dataset.lightboxBound = "true";
       const img = card.querySelector("img") as HTMLImageElement;
       if (!img) return;
       card.addEventListener("click", () => {
-        const fullSrc = img.currentSrc || img.src;
+        const fullSrc = htmlCard.dataset.fullSrc || img.currentSrc || img.src;
         const caption =
           card.querySelector("p")?.textContent || img.alt || "Gallery Image";
         openWithImage(fullSrc, caption);

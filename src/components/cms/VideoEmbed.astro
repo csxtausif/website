@@ -1,0 +1,56 @@
+---
+interface Props {
+  url: string;
+  caption?: string;
+  aspectRatio?: "16/9" | "4/3" | "1/1";
+}
+
+const { url, caption, aspectRatio = "16/9" } = Astro.props;
+
+function getEmbedSrc(rawUrl: string): { kind: "iframe" | "video"; src: string } {
+  try {
+    const parsed = new URL(rawUrl);
+    if (parsed.hostname.includes("youtube.com")) {
+      const videoId = parsed.searchParams.get("v") || parsed.pathname.split("/").filter(Boolean).pop();
+      if (videoId) return { kind: "iframe", src: `https://www.youtube-nocookie.com/embed/${videoId}` };
+    }
+    if (parsed.hostname === "youtu.be") {
+      const videoId = parsed.pathname.split("/").filter(Boolean)[0];
+      if (videoId) return { kind: "iframe", src: `https://www.youtube-nocookie.com/embed/${videoId}` };
+    }
+    if (parsed.hostname.includes("vimeo.com")) {
+      const videoId = parsed.pathname.split("/").filter(Boolean).pop();
+      if (videoId) return { kind: "iframe", src: `https://player.vimeo.com/video/${videoId}` };
+    }
+  } catch {
+    // Fallback to direct video tag
+  }
+  return { kind: "video", src: url };
+}
+
+const media = getEmbedSrc(url);
+const ratioClass =
+  aspectRatio === "4/3" ? "aspect-4/3" : aspectRatio === "1/1" ? "aspect-square" : "aspect-video";
+---
+
+<figure class="not-prose my-8 rounded-xl overflow-hidden border border-zinc-800 bg-zinc-950/80 shadow-xl">
+  <div class={`w-full ${ratioClass} bg-black`}>
+    {media.kind === "iframe" ? (
+      <iframe
+        src={media.src}
+        title={caption || "Embedded video"}
+        class="w-full h-full border-0"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowfullscreen
+        loading="lazy"
+      />
+    ) : (
+      <video src={media.src} controls preload="metadata" class="w-full h-full object-contain" />
+    )}
+  </div>
+  {caption && (
+    <figcaption class="px-4 py-2.5 text-xs font-mono text-zinc-400 border-t border-zinc-800/80">
+      {caption}
+    </figcaption>
+  )}
+</figure>

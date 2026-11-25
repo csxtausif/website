@@ -6,11 +6,38 @@ import ScramblingTitle from "@components/ScramblingTitle.astro";
 import Featured from "@components/featured.astro";
 import Terminal from "@components/terminal.astro";
 import ProjectShowcase from "@components/ProjectShowcase.astro";
+import { getSiteSeoSettings } from "@lib/cms/queries";
+import { resolveCmsSeo } from "@utils/seoConfig";
+import { setEdgeCacheHeaders } from "@utils/cache";
 // images
 import swissKnife from "@res/images/icons/swiss_knife.svg";
+
+export const prerender = false;
+setEdgeCacheHeaders(Astro.response.headers);
+
+const siteSettings = await getSiteSeoSettings();
+const seo = resolveCmsSeo(
+  "/",
+  {
+    title: siteSettings?.siteTitle,
+    desc: siteSettings?.siteDescription,
+    keywords: siteSettings?.defaultKeywords?.join(", "),
+    type: "website",
+  },
+  siteSettings?.homeSeo
+);
 ---
 
-<Layout>
+<Layout
+  title={seo.title}
+  desc={seo.desc}
+  keywords={seo.keywords}
+  imageUrl={seo.imageUrl}
+  imageAlt={seo.imageAlt}
+  canonicalUrl={seo.canonicalUrl}
+  noIndex={seo.noIndex}
+  twitterCard={seo.twitterCard}
+>
   <!-- for the bs people -->
   <div slot="no-bs-zone" class="w-full flex flex-col gap-6 md:px-6">
     <ScramblingTitle

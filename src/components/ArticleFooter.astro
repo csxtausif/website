@@ -1,5 +1,6 @@
 ---
 import { Image } from "astro:assets";
+import type { AuthorInfo } from "@lib/cms/types";
 import pfp from "@res/images/pfp.webp";
 import github from "@res/images/icons/github.svg";
 import linkedin from "@res/images/icons/linkedin.svg";
@@ -9,9 +10,15 @@ import { Sparkles, ArrowLeft } from "lucide-react";
 interface Props {
   currentTitle: string;
   type: "blog" | "project";
+  author?: AuthorInfo;
 }
 
-const { currentTitle, type = "blog" } = Astro.props;
+const { currentTitle, type = "blog", author } = Astro.props;
+const authorName = author?.name || "Tausif Alam";
+const authorRole = author?.roleSubtitle || "Software Engineer • Scalable backend systems, Node.js & PostgreSQL";
+const githubUrl = author?.github || "https://github.com/buildwithtausif";
+const linkedinUrl = author?.linkedin || "https://www.linkedin.com/in/buildwithtausif/";
+const xUrl = author?.x || "https://x.com/csxtausif";
 ---
 
 <div class="article-footer mt-10 pt-6 border-t border-zinc-800/80 font-sans">
@@ -57,19 +64,29 @@ const { currentTitle, type = "blog" } = Astro.props;
   >
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
       <div class="flex items-start sm:items-center gap-3.5 min-w-0">
-        <Image
-          src={pfp}
-          alt="Tausif Alam"
-          width={42}
-          height={42}
-          class="rounded-full border-2 border-lime-400 shrink-0 shadow-[0_0_8px_rgba(163,230,53,0.25)] mt-0.5 sm:mt-0"
-        />
+        {author?.avatarUrl ? (
+          <img
+            src={author.avatarUrl}
+            alt={authorName}
+            width={42}
+            height={42}
+            class="w-[42px] h-[42px] object-cover rounded-full border-2 border-lime-400 shrink-0 shadow-[0_0_8px_rgba(163,230,53,0.25)] mt-0.5 sm:mt-0"
+          />
+        ) : (
+          <Image
+            src={pfp}
+            alt={authorName}
+            width={42}
+            height={42}
+            class="rounded-full border-2 border-lime-400 shrink-0 shadow-[0_0_8px_rgba(163,230,53,0.25)] mt-0.5 sm:mt-0"
+          />
+        )}
         <div class="min-w-0">
           <h4 class="text-xs sm:text-sm font-bold text-neutral-100 m-0 whitespace-nowrap">
-            Written by Tausif Alam
+            Written by {authorName}
           </h4>
           <p class="text-[11px] sm:text-xs text-zinc-400 mt-0.5 leading-snug m-0 font-sans">
-            Software Engineer &bull; Scalable backend systems, Node.js &amp; PostgreSQL
+            {authorRole}
           </p>
         </div>
       </div>
@@ -77,7 +94,7 @@ const { currentTitle, type = "blog" } = Astro.props;
       <!-- Social Links -->
       <div class="flex items-center gap-3 shrink-0 self-end sm:self-center">
         <a
-          href="https://github.com/buildwithtausif"
+          href={githubUrl}
           target="_blank"
           rel="noopener noreferrer"
           class="text-zinc-400 hover:text-white transition-colors p-1"
@@ -86,7 +103,7 @@ const { currentTitle, type = "blog" } = Astro.props;
           <Image src={github} alt="GitHub" width={16} height={16} />
         </a>
         <a
-          href="https://www.linkedin.com/in/buildwithtausif/"
+          href={linkedinUrl}
           target="_blank"
           rel="noopener noreferrer"
           class="text-zinc-400 hover:text-white transition-colors p-1"
@@ -95,7 +112,7 @@ const { currentTitle, type = "blog" } = Astro.props;
           <Image src={linkedin} alt="LinkedIn" width={16} height={16} />
         </a>
         <a
-          href="https://x.com/csxtausif"
+          href={xUrl}
           target="_blank"
           rel="noopener noreferrer"
           class="text-zinc-400 hover:text-white transition-colors p-1"

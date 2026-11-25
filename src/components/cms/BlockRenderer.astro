@@ -1,0 +1,103 @@
+---
+import type { RenderedSegment } from "@lib/cms/portableText";
+import BentoGallery from "@components/BentoGallery.astro";
+import CodeBlock from "@components/CodeBlock.astro";
+import Terminal from "@components/terminal.astro";
+import CalloutBox from "./CalloutBox.astro";
+import EmbedCard from "./EmbedCard.astro";
+import VideoEmbed from "./VideoEmbed.astro";
+
+interface Props {
+  segments: RenderedSegment[];
+}
+
+const { segments = [] } = Astro.props;
+---
+
+{segments.map((segment) => {
+  if (segment.kind === "html") {
+    return <Fragment set:html={segment.html} />;
+  }
+
+  const block = segment.block;
+
+  if (block._type === "richImage") {
+    const isFull = block.maxWidth === "full";
+    return (
+      <figure class={isFull ? "not-prose my-8" : "my-7"}>
+        <img
+          src={block.src}
+          data-full-src={block.fullSrc || block.src}
+          alt={block.alt}
+          loading="lazy"
+          decoding="async"
+          class={
+            isFull
+              ? "w-full rounded-lg border border-zinc-800 bg-[#0c0d0e] p-1.5 shadow-xl cursor-zoom-in"
+              : undefined
+          }
+        />
+        {block.caption && (
+          <figcaption class="text-center text-xs font-mono text-zinc-500 mt-2">
+            {block.caption}
+          </figcaption>
+        )}
+      </figure>
+    );
+  }
+
+  if (block._type === "bentoGallery") {
+    return (
+      <BentoGallery
+        title={block.title}
+        description={block.description}
+        images={block.items}
+      />
+    );
+  }
+
+  if (block._type === "codeBlock") {
+    return <CodeBlock code={block.code} lang={block.lang} filename={block.filename} />;
+  }
+
+  if (block._type === "terminalWidget") {
+    return (
+      <div class="not-prose my-8">
+        <Terminal
+          user={block.user}
+          host={block.host}
+          path={block.path}
+          command={block.command}
+          data={block.data}
+        />
+      </div>
+    );
+  }
+
+  if (block._type === "calloutBox") {
+    return <CalloutBox variant={block.variant} title={block.title} body={block.body} />;
+  }
+
+  if (block._type === "embedCard") {
+    return (
+      <EmbedCard
+        url={block.url}
+        label={block.label}
+        description={block.description}
+        badge={block.badge}
+      />
+    );
+  }
+
+  if (block._type === "videoEmbed") {
+    return (
+      <VideoEmbed
+        url={block.url}
+        caption={block.caption}
+        aspectRatio={block.aspectRatio}
+      />
+    );
+  }
+
+  return null;
+})}

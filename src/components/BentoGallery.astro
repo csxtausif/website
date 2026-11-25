@@ -5,6 +5,7 @@ import type { ImageMetadata } from "astro";
 
 export interface BentoItem {
   src: ImageMetadata | string;
+  fullSrc?: string;
   alt?: string;
   title?: string;
   caption?: string;
@@ -110,6 +111,7 @@ const getBentoSpanClass = (item: BentoItem, index: number) => {
       return (
         <div
           class={`bento-card group relative rounded-xl border border-zinc-800/80 bg-zinc-950/70 overflow-hidden cursor-zoom-in transition-all duration-300 hover:border-lime-400/50 hover:shadow-[0_8px_30px_rgba(0,0,0,0.8)] h-full w-full ${spanClass}`}
+          data-full-src={item.fullSrc}
         >
           <!-- Confined Image Container -->
           <div class="w-full h-full overflow-hidden relative">

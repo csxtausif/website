@@ -5,10 +5,12 @@ import 'highlight.js/styles/tokyo-night-dark.css';
 interface Props {
   code?: string;
   lang?: string;
+  filename?: string;
 }
 
 let codeToHighlight = Astro.props.code || '';
 const explicitLang = Astro.props.lang;
+const filename = Astro.props.filename;
 
 // If no code prop is provided, we can extract it from the default slot.
 // This allows you to use standard Markdown code fences inside the component without template literals!
@@ -62,6 +64,11 @@ if (codeToHighlight) {
       <span class="text-[0.65rem] uppercase tracking-wider text-[#7aa2f7] font-semibold bg-[#292e42]/50 px-2 py-0.5 rounded-md mix-blend-screen">
         {language}
       </span>
+      {filename && (
+        <span class="text-xs font-mono text-[#a9b1d6] truncate max-w-[200px] sm:max-w-xs">
+          {filename}
+        </span>
+      )}
     </div>
     
     <!-- Copy button -->
@@ -82,31 +89,33 @@ if (codeToHighlight) {
 </div>
 
 <script>
-  // Setup copy functionality for all code blocks
-  document.addEventListener('DOMContentLoaded', () => {
+  // Setup copy functionality for all code blocks (supports initial load + View Transitions)
+  function setupCopyButtons() {
     const copyButtons = document.querySelectorAll('.copy-button');
-    
+
     copyButtons.forEach(button => {
+      const btnEl = button as HTMLElement;
+      if (btnEl.dataset.copyBound === 'true') return;
+      btnEl.dataset.copyBound = 'true';
+
       button.addEventListener('click', async () => {
         const container = button.closest('.code-block');
         if (!container) return;
-        
+
         const codeElement = container.querySelector('code');
         const textToCopy = codeElement?.textContent || '';
-        
+
         try {
           await navigator.clipboard.writeText(textToCopy);
-          
-          // Toggle icons for success state feedback
+
           const copyIcon = button.querySelector('.lucide-copy');
           const checkIcon = button.querySelector('.lucide-check');
-          
+
           if (copyIcon && checkIcon) {
             copyIcon.classList.add('hidden');
             checkIcon.classList.remove('hidden');
-            checkIcon.classList.add('animate-in', 'zoom-in', 'duration-300'); // Optional entry animation
-            
-            // Revert after 2 seconds
+            checkIcon.classList.add('animate-in', 'zoom-in', 'duration-300');
+
             setTimeout(() => {
               copyIcon.classList.remove('hidden');
               checkIcon.classList.add('hidden');
@@ -117,7 +126,14 @@ if (codeToHighlight) {
         }
       });
     });
-  });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', setupCopyButtons);
+  } else {
+    setupCopyButtons();
+  }
+  document.addEventListener('astro:page-load', setupCopyButtons);
 </script>
 
 <style is:global>

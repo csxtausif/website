@@ -1,20 +1,25 @@
 ---
-import { getCollection } from "astro:content";
 import BlogLayout from "@layouts/blogLayout.astro";
 import UpsideDown from "@components/UpsideDown.astro";
 import { Check, Folder } from "lucide-react";
-import createSlug from "@utils/createSlug";
-import countReadingMinutes from "@utils/readingMin";
+import { getAllBlogSummaries, getSiteSeoSettings } from "@lib/cms/queries";
+import { resolveCmsSeo } from "@utils/seoConfig";
+import { setEdgeCacheHeaders } from "@utils/cache";
 
-// sort according to the latest publishing date
-const posts = (await getCollection("blog")).sort(
-  (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
-);
+export const prerender = false;
+setEdgeCacheHeaders(Astro.response.headers);
+
+const [posts, siteSettings] = await Promise.all([
+  getAllBlogSummaries(),
+  getSiteSeoSettings(),
+]);
+
+const seo = resolveCmsSeo("/blog", { type: "website" }, siteSettings?.blogIndexSeo);
 const articleCount = posts.length;
-// Extract all tags and count them
+
 const tagsCount = posts.reduce((acc, post) => {
-  if (post.data.tags) {
-    post.data.tags.forEach(tag => {
+  if (post.tags) {
+    post.tags.forEach((tag) => {
       acc[tag] = (acc[tag] || 0) + 1;
     });
   }
@@ -24,7 +29,16 @@ const tagsCount = posts.reduce((acc, post) => {
 const sortedTags = Object.entries(tagsCount).sort((a, b) => a[0].localeCompare(b[0]));
 ---
 
-<BlogLayout>
+<BlogLayout
+  title={seo.title}
+  desc={seo.desc}
+  keywords={seo.keywords}
+  imageUrl={seo.imageUrl}
+  imageAlt={seo.imageAlt}
+  canonicalUrl={seo.canonicalUrl}
+  noIndex={seo.noIndex}
+  twitterCard={seo.twitterCard}
+>
   {posts.length === 0 ? (
     <UpsideDown type="posts" />
   ) : (
@@ -67,7 +81,6 @@ const sortedTags = Object.entries(tagsCount).sort((a, b) => a[0].localeCompare(b
           
           <!-- Folder Header -->
           <div class="flex items-center text-neutral-200 text-[15px] md:text-sm md:mb-5 font-normal tracking-wide shrink-0 border-r border-[#333] md:border-r-0 pr-5 md:pr-0 mr-5 md:mr-0 h-full">
-            <!-- Folder Icon SVG -->
             <Folder size={15} strokeWidth={3.5}/> <span class="ml-2">Topics</span>
           </div>
 
@@ -90,9 +103,9 @@ const sortedTags = Object.entries(tagsCount).sort((a, b) => a[0].localeCompare(b
       <div class="md:col-span-2 col-span-1 flex flex-col pt-0 md:pt-0" id="articles-list">
         {posts.map((post) => (
           <a 
-            href={`/blog/${createSlug(post.id)}`} 
+            href={`/blog/${post.slug}`} 
             class="article-card group block border-b border-[#333] last:border-b-0 hover:bg-white/2 transition-colors relative px-2 -mx-2 md:mx-0 md:px-0"
-            data-tags={post.data.tags ? post.data.tags.map(t => t.toLowerCase()).join(',') : ''}
+            data-tags={post.tags.map(t => t.toLowerCase()).join(',')}
           >
             
             <!-- Desktop Layout -->
@@ -102,12 +115,12 @@ const sortedTags = Object.entries(tagsCount).sort((a, b) => a[0].localeCompare(b
               <div class="text-[13px] text-neutral-300 font-mono tracking-tight flex items-center h-full">
                 <!-- White square bullet -->
                 <div class="w-1.25 h-1.25 bg-neutral-300 mr-2.5 shrink-0"></div>
-                {post.data.pubDate.toISOString().split('T')[0].replace(/-/g, '.')} <br/> {countReadingMinutes(post.body?.match(/\S+/g)?.length || 0)} min read
+                {post.pubDate.toISOString().split('T')[0].replace(/-/g, '.')} <br/> {post.readTimeMinutes} min read
               </div>
 
               <!-- Title -->
               <div class="text-[19px] lg:text-[21px] text-neutral-200 font-normal tracking-tight pr-6 relative transition-transform duration-300 group-hover:translate-x-1 font-sans">
-                {post.data.title}
+                {post.title}
               </div>
             </div>
 
@@ -116,12 +129,12 @@ const sortedTags = Object.entries(tagsCount).sort((a, b) => a[0].localeCompare(b
               <!-- Date & Reading Time -->
               <div class="text-[11px] text-neutral-300 font-mono tracking-tighter flex items-center mb-1.5">
                 <div class="w-1.5 h-1.5 bg-neutral-300 mr-2 shrink-0"></div>
-                {post.data.pubDate.toISOString().split('T')[0].replace(/-/g, '.')} &nbsp;&bull;&nbsp; {countReadingMinutes(post.body?.match(/\S+/g)?.length || 0)} min read
+                {post.pubDate.toISOString().split('T')[0].replace(/-/g, '.')} &nbsp;&bull;&nbsp; {post.readTimeMinutes} min read
               </div>
               
               <!-- Title -->
               <div class="text-[18px] text-neutral-100 font-normal leading-tight pr-8">
-                {post.data.title}
+                {post.title}
               </div>
             </div>
           </a>
@@ -134,33 +147,42 @@ const sortedTags = Object.entries(tagsCount).sort((a, b) => a[0].localeCompare(b
 </BlogLayout>
 
 <script>
-  const filters = document.querySelectorAll('.tag-filter');
-  const articles = document.querySelectorAll('.article-card');
-  const countSpan = document.getElementById('article-count');
+  function setupBlogTagFilter() {
+    const filters = document.querySelectorAll('.tag-filter');
+    const articles = document.querySelectorAll('.article-card');
+    const countSpan = document.getElementById('article-count');
 
-  filters.forEach(filter => {
-    filter.addEventListener('change', () => {
-      const selectedTags = Array.from(filters)
-        .filter(f => (f as HTMLInputElement).checked)
-        .map(f => (f as HTMLInputElement).value);
+    filters.forEach(filter => {
+      const input = filter as HTMLInputElement;
+      if (input.dataset.filterBound === 'true') return;
+      input.dataset.filterBound = 'true';
 
-      let visibleCount = 0;
+      input.addEventListener('change', () => {
+        const selectedTags = Array.from(filters)
+          .filter(f => (f as HTMLInputElement).checked)
+          .map(f => (f as HTMLInputElement).value);
 
-      articles.forEach(article => {
-        const articleTags = (article.getAttribute('data-tags') || '').split(',');
-        const isVisible = selectedTags.length === 0 || selectedTags.some(tag => articleTags.includes(tag));
-        
-        if (isVisible) {
-          (article as HTMLElement).style.display = '';
-          visibleCount++;
-        } else {
-          (article as HTMLElement).style.display = 'none';
+        let visibleCount = 0;
+
+        articles.forEach(article => {
+          const articleTags = (article.getAttribute('data-tags') || '').split(',');
+          const isVisible = selectedTags.length === 0 || selectedTags.some(tag => articleTags.includes(tag));
+
+          if (isVisible) {
+            (article as HTMLElement).style.display = '';
+            visibleCount++;
+          } else {
+            (article as HTMLElement).style.display = 'none';
+          }
+        });
+
+        if (countSpan) {
+          countSpan.textContent = visibleCount.toString();
         }
       });
-
-      if (countSpan) {
-        countSpan.textContent = visibleCount.toString();
-      }
     });
-  });
+  }
+
+  setupBlogTagFilter();
+  document.addEventListener('astro:page-load', setupBlogTagFilter);
 </script>

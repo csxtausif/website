@@ -1,0 +1,65 @@
+---
+import { Info, Lightbulb, AlertTriangle, ShieldAlert } from "lucide-react";
+
+interface Props {
+  variant?: "note" | "tip" | "warning" | "danger";
+  title?: string;
+  body: string;
+}
+
+const { variant = "note", title, body } = Astro.props;
+
+const variantStyles = {
+  note: {
+    border: "border-zinc-700/80",
+    bg: "bg-zinc-900/50",
+    badge: "bg-zinc-800 text-zinc-200",
+    accent: "text-zinc-200",
+    label: "NOTE",
+  },
+  tip: {
+    border: "border-lime-400/40",
+    bg: "bg-lime-400/[0.04]",
+    badge: "bg-lime-400 text-stone-950",
+    accent: "text-lime-400",
+    label: "PRO TIP",
+  },
+  warning: {
+    border: "border-amber-400/40",
+    bg: "bg-amber-400/[0.04]",
+    badge: "bg-amber-400 text-stone-950",
+    accent: "text-amber-400",
+    label: "WARNING",
+  },
+  danger: {
+    border: "border-red-400/40",
+    bg: "bg-red-400/[0.04]",
+    badge: "bg-red-500 text-white",
+    accent: "text-red-400",
+    label: "CAUTION",
+  },
+}[variant] || {
+  border: "border-zinc-700/80",
+  bg: "bg-zinc-900/50",
+  badge: "bg-zinc-800 text-zinc-200",
+  accent: "text-zinc-200",
+  label: "NOTE",
+};
+---
+
+<aside class={`not-prose my-7 rounded-md border ${variantStyles.border} ${variantStyles.bg} p-4 sm:p-5 shadow-md`}>
+  <div class="flex items-center gap-2.5 mb-2">
+    <span class={`inline-flex items-center justify-center w-5 h-5 rounded-xs ${variantStyles.badge}`}>
+      {variant === "tip" && <Lightbulb size={12} />}
+      {variant === "warning" && <AlertTriangle size={12} />}
+      {variant === "danger" && <ShieldAlert size={12} />}
+      {variant === "note" && <Info size={12} />}
+    </span>
+    <span class={`text-xs font-mono font-bold uppercase tracking-wider ${variantStyles.accent}`}>
+      [{variantStyles.label}] {title || ""}
+    </span>
+  </div>
+  <p class="text-sm text-zinc-300 leading-relaxed m-0 whitespace-pre-line font-sans">
+    {body}
+  </p>
+</aside>

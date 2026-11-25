@@ -11,6 +11,14 @@ interface Props {
   keywords?: string;
   image?: import("astro").ImageMetadata;
   imageUrl?: string;
+  imageAlt?: string;
+  type?: string;
+  canonicalUrl?: string;
+  noIndex?: boolean;
+  twitterCard?: "summary_large_image" | "summary";
+  publishedTime?: string;
+  modifiedTime?: string;
+  authorName?: string;
 }
 const {
   title = seo.title,
@@ -18,10 +26,18 @@ const {
   keywords = seo.keywords,
   image = seo.image,
   imageUrl = seo.imageUrl,
+  imageAlt,
+  type = "article",
+  canonicalUrl,
+  noIndex = false,
+  twitterCard = seo.twitterCard || "summary_large_image",
+  publishedTime,
+  modifiedTime,
+  authorName,
 } = Astro.props as Props;
 const pathname = Astro.url.pathname.replace(/\/$/, "");
 const siteOrigin = Astro.url.origin && Astro.url.origin !== "null" ? Astro.url.origin : (Astro.site ? Astro.site.toString() : "https://www.buildwithtausif.in");
-const canonical = new URL(pathname || "/", siteOrigin).toString();
+const canonical = canonicalUrl || new URL(pathname || "/", siteOrigin).toString();
 const ogImageURL = imageUrl ? new URL(imageUrl, siteOrigin).toString() : (image?.src ? new URL(image.src, siteOrigin).toString() : undefined);
 ---
 
@@ -31,23 +47,28 @@ const ogImageURL = imageUrl ? new URL(imageUrl, siteOrigin).toString() : (image?
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{title}</title>
     <link rel="canonical" href={canonical} />
-    <link rel="sitemap" href="/sitemap-index.xml" />
+    <link rel="sitemap" href="/sitemap.xml" />
+    {noIndex && <meta name="robots" content="noindex, nofollow" />}
     <meta name="generator" content={Astro.generator} />
     <meta name="description" content={desc} />
     <meta name="keywords" content={keywords} />
     <!-- open graph metadata -->
-    <meta property="og:type" content="article" />
+    <meta property="og:type" content={type} />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={desc} />
     <meta property="og:url" content={canonical} />
     <meta property="og:locale" content="en_US" />
+    {publishedTime && <meta property="article:published_time" content={publishedTime} />}
+    {modifiedTime && <meta property="article:modified_time" content={modifiedTime} />}
+    {authorName && <meta property="article:author" content={authorName} />}
     <!-- conditional og:image for project and blog pages -->
     <meta property="og:image" content={ogImageURL} />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:alt" content={imageAlt || title} />
     <!-- twitter card -->
-    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:card" content={twitterCard} />
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={desc} />
     <meta name="twitter:image" content={ogImageURL} />

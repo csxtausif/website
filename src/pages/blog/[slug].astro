@@ -1,146 +1,195 @@
 ---
-import type { GetStaticPaths } from "astro";
 import "@styles/global.css";
 import PostLayout from "@layouts/postLayout.astro";
-import { getCollection, render } from "astro:content";
-import createSlug from "@utils/createSlug";
-import countReadingMinutes from "@utils/readingMin";
-import formatRelativeTime from "@utils/relativeTime";
+import BlogLayout from "@layouts/blogLayout.astro";
+import UpsideDown from "@components/UpsideDown.astro";
 import ReadingProgressBar from "@components/ReadingProgressBar.astro";
 import TableOfContents from "@components/TableOfContents.astro";
 import TldrBox from "@components/TldrBox.astro";
 import MediaLightbox from "@components/MediaLightbox.astro";
 import ArticleFooter from "@components/ArticleFooter.astro";
+import BlockRenderer from "@components/cms/BlockRenderer.astro";
+import { getBlogBySlug } from "@lib/cms/queries";
+import { parsePortableBody } from "@lib/cms/portableText";
+import { resolveCmsSeo } from "@utils/seoConfig";
+import { setEdgeCacheHeaders } from "@utils/cache";
+import countReadingMinutes from "@utils/readingMin";
+import formatRelativeTime from "@utils/relativeTime";
 import { Image } from "astro:assets";
 import pfp from "@res/images/pfp.webp";
 
-export async function getStaticPaths() {
-  const posts = await getCollection("blog");
-  return posts.map((post) => ({
-    params: { slug: createSlug(post.id) },
-    props: { post },
-  }));
+export const prerender = false;
+
+const { slug } = Astro.params;
+const post = slug ? await getBlogBySlug(slug) : null;
+
+if (!post) {
+  Astro.response.status = 404;
+} else {
+  setEdgeCacheHeaders(Astro.response.headers);
 }
 
-const { post } = Astro.props;
-const { Content, headings = [] } = await render(post);
-const wordCount = post.body?.match(/\S+/g)?.length || 0;
-const readTime = countReadingMinutes(wordCount);
-const relativeDate = formatRelativeTime(post.data.pubDate);
+const parsed = post ? parsePortableBody(post.body) : { segments: [], headings: [], wordCount: 0 };
+const readTime = post
+  ? post.readTimeMinutes || Math.max(1, countReadingMinutes(parsed.wordCount))
+  : 0;
+const relativeDate = post ? formatRelativeTime(post.pubDate) : "";
+
+const seo = post
+  ? resolveCmsSeo(
+      Astro.url.pathname,
+      {
+        title: `${post.title} – Tausif's Blog`,
+        desc: post.description,
+        keywords: post.tags.join(", "),
+        type: "article",
+      },
+      post.seo,
+      post.updatedAt
+    )
+  : null;
 ---
 
-<PostLayout
-  title={`${post.data.title} – Tausif's Blog`}
-  desc={post.data.description}
-  keywords={post.data.tags.join(", ")}
->
-  <ReadingProgressBar totalMinutes={readTime} />
-  <MediaLightbox />
+{!post || !seo ? (
+  <BlogLayout
+    title="404 - Not Found | buildwithtausif"
+    desc="Friends don't lie. But this link did... the page you're looking for is nowhere to be found."
+    noIndex={true}
+  >
+    <UpsideDown type="404" />
+  </BlogLayout>
+) : (
+  <PostLayout
+    title={seo.title}
+    desc={seo.desc}
+    keywords={seo.keywords}
+    imageUrl={seo.imageUrl}
+    imageAlt={seo.imageAlt}
+    type={seo.type || "article"}
+    canonicalUrl={seo.canonicalUrl}
+    noIndex={seo.noIndex}
+    twitterCard={seo.twitterCard}
+    publishedTime={post.pubDate.toISOString()}
+    modifiedTime={post.updatedAt}
+    authorName={post.author.name}
+  >
+    <ReadingProgressBar totalMinutes={readTime} />
+    <MediaLightbox />
 
-  <main class="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-24 font-sans text-neutral-100">
-    <!-- Breadcrumb Bar -->
-    <nav class="breadcrumb-nav flex items-center gap-2 text-xs font-mono text-zinc-400 mb-6 flex-wrap">
-      <a href="/" class="hover:text-lime-400 transition-colors">[H] HOME</a>
-      <span class="text-zinc-600">/</span>
-      <a href="/blog" class="hover:text-lime-400 transition-colors">BLOG</a>
-      <span class="text-zinc-600">/</span>
-      <span class="text-zinc-400 truncate max-w-[200px] sm:max-w-sm">
-        {post.data.title}
-      </span>
-    </nav>
+    <main class="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-24 font-sans text-neutral-100">
+      <!-- Breadcrumb Bar -->
+      <nav class="breadcrumb-nav flex items-center gap-2 text-xs font-mono text-zinc-400 mb-6 flex-wrap">
+        <a href="/" class="hover:text-lime-400 transition-colors">[H] HOME</a>
+        <span class="text-zinc-600">/</span>
+        <a href="/blog" class="hover:text-lime-400 transition-colors">BLOG</a>
+        <span class="text-zinc-600">/</span>
+        <span class="text-zinc-400 truncate max-w-[200px] sm:max-w-sm">
+          {post.title}
+        </span>
+      </nav>
 
-    <!-- Article Header -->
-    <header class="max-w-4xl mx-auto mb-8">
-      <!-- Tag Pills -->
-      <div class="flex flex-wrap items-center gap-2 mb-4">
-        {
-          post.data.tags.map((tag: string) => (
+      <!-- Article Header -->
+      <header class="max-w-4xl mx-auto mb-8">
+        <!-- Tag Pills -->
+        <div class="flex flex-wrap items-center gap-2 mb-4">
+          {post.tags.map((tag: string) => (
             <span class="inline-flex items-center rounded-xs bg-zinc-900 border border-zinc-800 px-2.5 py-0.5 text-[11px] font-mono text-lime-400 tracking-wider uppercase font-semibold">
               #{tag}
             </span>
-          ))
-        }
-      </div>
+          ))}
+        </div>
 
-      <!-- Main Title -->
-      <h1 class="text-3xl sm:text-5xl lg:text-6xl font-extrabold text-neutral-100 tracking-tight leading-[1.12] mb-6 font-sans">
-        {post.data.title}
-      </h1>
+        <!-- Main Title -->
+        <h1 class="text-3xl sm:text-5xl lg:text-6xl font-extrabold text-neutral-100 tracking-tight leading-[1.12] mb-6 font-sans">
+          {post.title}
+        </h1>
 
-      <!-- Metadata Strip -->
-      <div class="article-meta-strip flex flex-wrap items-center justify-between gap-4 py-4 border-y border-zinc-800/80 text-xs font-mono text-zinc-400">
-        <div class="flex items-center gap-3">
-          <Image
-            src={pfp}
-            alt={post.data.author}
-            width={36}
-            height={36}
-            class="rounded-full border-2 border-lime-400 shrink-0 shadow-[0_0_8px_rgba(163,230,53,0.25)]"
-          />
-          <div>
-            <span class="text-neutral-200 font-semibold block sm:inline">
-              {post.data.author}
-            </span>
-            <span class="text-zinc-500 hidden sm:inline"> &bull; </span>
-            <span class="text-zinc-400 text-[11px] block sm:inline">
-              {post.data.pubDate.toLocaleDateString("en-US", {
-                month: "short",
-                day: "numeric",
-                year: "numeric",
-              })}
-              <span class="text-lime-400/90 ml-1">({relativeDate})</span>
+        <!-- Metadata Strip -->
+        <div class="article-meta-strip flex flex-wrap items-center justify-between gap-4 py-4 border-y border-zinc-800/80 text-xs font-mono text-zinc-400">
+          <div class="flex items-center gap-3">
+            {post.author.avatarUrl ? (
+              <img
+                src={post.author.avatarUrl}
+                alt={post.author.name}
+                width={36}
+                height={36}
+                class="w-9 h-9 object-cover rounded-full border-2 border-lime-400 shrink-0 shadow-[0_0_8px_rgba(163,230,53,0.25)]"
+              />
+            ) : (
+              <Image
+                src={pfp}
+                alt={post.author.name}
+                width={36}
+                height={36}
+                class="rounded-full border-2 border-lime-400 shrink-0 shadow-[0_0_8px_rgba(163,230,53,0.25)]"
+              />
+            )}
+            <div>
+              <span class="text-neutral-200 font-semibold block sm:inline">
+                {post.author.name}
+              </span>
+              <span class="text-zinc-500 hidden sm:inline"> &bull; </span>
+              <span class="text-zinc-400 text-[11px] block sm:inline">
+                {post.pubDate.toLocaleDateString("en-US", {
+                  month: "short",
+                  day: "numeric",
+                  year: "numeric",
+                })}
+                <span class="text-lime-400/90 ml-1">({relativeDate})</span>
+              </span>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-3">
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-sm bg-zinc-900 border border-zinc-800 text-zinc-300">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="13"
+                height="13"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="text-lime-400"
+              >
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+              </svg>
+              {readTime} MIN READ
             </span>
           </div>
         </div>
+      </header>
 
-        <div class="flex items-center gap-3">
-          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-sm bg-zinc-900 border border-zinc-800 text-zinc-300">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="13"
-              height="13"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              class="text-lime-400"
-            >
-              <circle cx="12" cy="12" r="10"></circle>
-              <polyline points="12 6 12 12 16 14"></polyline>
-            </svg>
-            {readTime} MIN READ
-          </span>
+      <!-- Reading Content Grid (Desktop: Center Reading Column + Sticky Right TOC) -->
+      <div class="reading-content-grid flex flex-col lg:flex-row items-start justify-center gap-8 lg:gap-12 max-w-6xl mx-auto">
+        
+        <!-- Primary Reading Center Column -->
+        <div class="reading-column w-full max-w-3xl min-w-0">
+          <!-- TL;DR Executive Summary -->
+          <TldrBox
+            summary={post.description}
+            takeaways={post.tldrTakeaways}
+            tags={post.tags.slice(0, 3)}
+          />
+
+          <!-- In-Article Table of Contents (Strictly Mobile/Tablet only, hidden on lg+) -->
+          <TableOfContents headings={parsed.headings} variant="mobile" />
+
+          <!-- Zen Body Prose -->
+          <article class="content w-full prose prose-invert prose-zinc max-w-none text-zinc-300 text-base sm:text-[17px] leading-relaxed font-sans prose-headings:font-bold prose-headings:tracking-tight prose-headings:text-neutral-100 prose-a:text-lime-400 prose-a:no-underline hover:prose-a:underline prose-code:text-lime-300">
+            <BlockRenderer segments={parsed.segments} />
+          </article>
+
+          <!-- Article Milestone Footer -->
+          <ArticleFooter currentTitle={post.title} type="blog" author={post.author} />
         </div>
+
+        <!-- Desktop Sticky Table of Contents (Strictly Desktop lg+ only, hidden on mobile) -->
+        <TableOfContents headings={parsed.headings} variant="desktop" />
       </div>
-    </header>
-
-    <!-- Reading Content Grid (Desktop: Center Reading Column + Sticky Right TOC) -->
-    <div class="reading-content-grid flex flex-col lg:flex-row items-start justify-center gap-8 lg:gap-12 max-w-6xl mx-auto">
-      
-      <!-- Primary Reading Center Column -->
-      <div class="reading-column w-full max-w-3xl min-w-0">
-        <!-- TL;DR Executive Summary -->
-        <TldrBox
-          summary={post.data.description}
-          tags={post.data.tags.slice(0, 3)}
-        />
-
-        <!-- In-Article Table of Contents (Strictly Mobile/Tablet only, hidden on lg+) -->
-        <TableOfContents headings={headings} variant="mobile" />
-
-        <!-- Zen Body Prose -->
-        <article class="content w-full prose prose-invert prose-zinc max-w-none text-zinc-300 text-base sm:text-[17px] leading-relaxed font-sans prose-headings:font-bold prose-headings:tracking-tight prose-headings:text-neutral-100 prose-a:text-lime-400 prose-a:no-underline hover:prose-a:underline prose-code:text-lime-300">
-          <Content />
-        </article>
-
-        <!-- Article Milestone Footer (with My Hero Academia reference) -->
-        <ArticleFooter currentTitle={post.data.title} type="blog" />
-      </div>
-
-      <!-- Desktop Sticky Table of Contents (Strictly Desktop lg+ only, hidden on mobile) -->
-      <TableOfContents headings={headings} variant="desktop" />
-    </div>
-  </main>
-</PostLayout>
+    </main>
+  </PostLayout>
+)}

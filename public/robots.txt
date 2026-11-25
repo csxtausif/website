@@ -5,4 +5,4 @@ Disallow: /404.html
 Disallow: /500
 Disallow: /500.html
 
-Sitemap: https://buildwithtausif.com/sitemap-index.xml
+Sitemap: https://www.buildwithtausif.in/sitemap.xml

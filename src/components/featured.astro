@@ -1,21 +1,8 @@
 ---
-import { getCollection } from "astro:content";
-import createSlug from "@utils/createSlug";
+import { getFeaturedWidgetData } from "@lib/cms/queries";
 import formatRelativeTime from "@utils/relativeTime";
-import countReadingMinutes from "@utils/readingMin";
 
-// Query and sort both collections by publication date (newest first)
-const allBlogPosts = await getCollection("blog");
-const allProjects = await getCollection("project");
-
-const articles = allBlogPosts
-  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
-  .slice(0, 3);
-
-const projectUpdates = allProjects
-  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
-  .slice(0, 3);
-
+const { articles, projectUpdates } = await getFeaturedWidgetData();
 const hasContent = articles.length > 0 || projectUpdates.length > 0;
 ---
 
@@ -56,33 +43,28 @@ const hasContent = articles.length > 0 || projectUpdates.length > 0;
           {articles.length > 0 ? (
             articles.map((post) => (
               <a
-                href={`/blog/${createSlug(post.id)}`}
+                href={`/blog/${post.slug}`}
                 class="group/item block p-3.5 hover:bg-white/[0.03] transition-colors relative"
               >
                 <h3 class="text-[13px] sm:text-sm font-semibold text-neutral-200 group-hover/item:text-lime-400 transition-colors leading-snug line-clamp-2">
-                  {post.data.title}
+                  {post.title}
                 </h3>
-                {post.data.description && (
+                {post.description && (
                   <p class="text-xs text-neutral-400 line-clamp-2 mt-1.5 leading-relaxed font-sans font-normal">
-                    {post.data.description}
+                    {post.description}
                   </p>
                 )}
                 <div class="flex flex-wrap items-center gap-2 mt-2.5 text-[10px] font-mono tracking-wider text-zinc-500 uppercase">
                   <span class="text-lime-400/90 font-medium">
-                    {formatRelativeTime(post.data.pubDate)}
+                    {formatRelativeTime(post.pubDate)}
                   </span>
                   <span>&bull;</span>
-                  <span>
-                    {countReadingMinutes(
-                      post.body?.match(/\S+/g)?.length || 0
-                    )}{" "}
-                    MIN READ
-                  </span>
-                  {post.data.tags && post.data.tags[0] && (
+                  <span>{post.readTimeMinutes} MIN READ</span>
+                  {post.tags[0] && (
                     <>
                       <span>&bull;</span>
                       <span class="truncate max-w-[110px]">
-                        {post.data.tags[0]}
+                        {post.tags[0]}
                       </span>
                     </>
                   )}
@@ -131,33 +113,33 @@ const hasContent = articles.length > 0 || projectUpdates.length > 0;
           {projectUpdates.length > 0 ? (
             projectUpdates.map((project) => (
               <a
-                href={`/project/${createSlug(project.id)}`}
+                href={`/project/${project.slug}`}
                 class="group/item block p-3.5 hover:bg-white/[0.03] transition-colors relative"
               >
                 <div class="flex items-start justify-between gap-2">
                   <h3 class="text-[13px] sm:text-sm font-semibold text-neutral-200 group-hover/item:text-lime-400 transition-colors leading-snug line-clamp-2">
-                    {project.data.title}
+                    {project.title}
                   </h3>
-                  {project.data.version && (
+                  {project.version && (
                     <span class="inline-flex items-center rounded-sm bg-zinc-800 px-1.5 py-0.5 text-[9px] font-mono font-semibold text-lime-400 ring-1 ring-inset ring-lime-400/20 shrink-0">
-                      v{project.data.version}
+                      v{project.version}
                     </span>
                   )}
                 </div>
-                {project.data.description && (
+                {project.description && (
                   <p class="text-xs text-neutral-400 line-clamp-2 mt-1.5 leading-relaxed font-sans font-normal">
-                    {project.data.description}
+                    {project.description}
                   </p>
                 )}
                 <div class="flex flex-wrap items-center gap-2 mt-2.5 text-[10px] font-mono tracking-wider text-zinc-500 uppercase">
                   <span class="text-lime-400/90 font-medium">
-                    {formatRelativeTime(project.data.pubDate)}
+                    {formatRelativeTime(project.pubDate)}
                   </span>
-                  {project.data.tags && project.data.tags[0] && (
+                  {project.tags[0] && (
                     <>
                       <span>&bull;</span>
                       <span class="truncate max-w-[110px]">
-                        {project.data.tags[0]}
+                        {project.tags[0]}
                       </span>
                     </>
                   )}
