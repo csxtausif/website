@@ -42,10 +42,9 @@ const sortedTags = Object.entries(tagsCount).sort((a, b) => a[0].localeCompare(b
   {posts.length === 0 ? (
     <UpsideDown type="posts" />
   ) : (
-  <!-- Full wrapper for exactly matching design aesthetics -->
   <div class="max-w-310 mx-auto px-4 sm:px-6 lg:px-8 mt-12 mb-24 font-sans text-neutral-300">
     
-    <!-- Header row -->
+    {/* Header row */}
     <div class="mb-5 flex items-start">
       <h1 class="text-6xl md:text-[5.5rem] font-normal tracking-tight text-neutral-100 capitalize">
         Blogs
@@ -53,38 +52,38 @@ const sortedTags = Object.entries(tagsCount).sort((a, b) => a[0].localeCompare(b
       <sup class="text-sm md:text-lg font-normal mt-3 ml-2 text-neutral-400">(<span id="article-count">{articleCount}</span>)</sup>
     </div>
 
-    <!-- Top Border Line -->
+    {/* Top Border Line */}
     <div class="border-t border-[#333]"></div>
 
-    <!-- Desktop Grid Headers -->
+    {/* Desktop Grid Headers */}
     <div class="hidden md:grid grid-cols-[250px_150px_1fr] lg:grid-cols-[280px_150px_1fr] gap-6 text-[10px] sm:text-xs tracking-wider text-neutral-400 uppercase">
       <div class="py-3">/ Filters</div>
       <div class="py-3">/ Date</div>
       <div class="py-3">/ Name</div>
     </div>
     
-    <!-- Mobile Filter Header -->
+    {/* Mobile Filter Header */}
     <div class="md:hidden text-[10px] tracking-wider text-neutral-400 py-3 uppercase">
       / Filters
     </div>
 
-    <!-- Inner divider border (separates headers from content) -->
+    {/* Inner divider border (separates headers from content) */}
     <div class="border-t border-[#333]"></div>
 
-    <!-- Main Content Grid -->
+    {/* Main Content Grid */}
     <div class="flex flex-col md:grid md:grid-cols-[250px_150px_1fr] lg:grid-cols-[280px_150px_1fr] md:gap-6 mt-0">
       
-      <!-- Left Sidebar: Filters -->
+      {/* Left Sidebar: Filters */}
       <div class="md:col-span-1 shrink-0">
-        <!-- Desktop/Mobile Container -->
+        {/* Desktop/Mobile Container */}
         <div class="flex flex-row md:flex-col items-center md:items-start border-b md:border-b-0 border-[#333] pt-4 md:pt-4 pb-4 md:pb-0">
           
-          <!-- Folder Header -->
+          {/* Folder Header */}
           <div class="flex items-center text-neutral-200 text-[15px] md:text-sm md:mb-5 font-normal tracking-wide shrink-0 border-r border-[#333] md:border-r-0 pr-5 md:pr-0 mr-5 md:mr-0 h-full">
             <Folder size={15} strokeWidth={3.5}/> <span class="ml-2">Topics</span>
           </div>
 
-          <!-- Filter list -->
+          {/* Filter list */}
           <div class="flex flex-row md:flex-col overflow-x-auto md:overflow-visible gap-6 md:gap-2.5 scrollbar-hide w-full text-[14px] md:text-[13px] text-neutral-400 md:text-neutral-500 font-normal md:font-light">
             {sortedTags.map(([tag, count]) => (
               <label class="flex items-center cursor-pointer group shrink-0 w-auto">
@@ -99,7 +98,7 @@ const sortedTags = Object.entries(tagsCount).sort((a, b) => a[0].localeCompare(b
         </div>
       </div>
 
-      <!-- Right Area: Articles List -->
+      {/* Right Area: Articles List */}
       <div class="md:col-span-2 col-span-1 flex flex-col pt-0 md:pt-0" id="articles-list">
         {posts.map((post) => (
           <a 
@@ -108,31 +107,31 @@ const sortedTags = Object.entries(tagsCount).sort((a, b) => a[0].localeCompare(b
             data-tags={post.tags.map(t => t.toLowerCase()).join(',')}
           >
             
-            <!-- Desktop Layout -->
+            {/* Desktop Layout */}
             <div class="hidden md:grid grid-cols-[150px_1fr] gap-6 items-center py-5">
               
-              <!-- Date & Reading Time -->
+              {/* Date & Reading Time */}
               <div class="text-[13px] text-neutral-300 font-mono tracking-tight flex items-center h-full">
-                <!-- White square bullet -->
+                {/* White square bullet */}
                 <div class="w-1.25 h-1.25 bg-neutral-300 mr-2.5 shrink-0"></div>
                 {post.pubDate.toISOString().split('T')[0].replace(/-/g, '.')} <br/> {post.readTimeMinutes} min read
               </div>
 
-              <!-- Title -->
+              {/* Title */}
               <div class="text-[19px] lg:text-[21px] text-neutral-200 font-normal tracking-tight pr-6 relative transition-transform duration-300 group-hover:translate-x-1 font-sans">
                 {post.title}
               </div>
             </div>
 
-            <!-- Mobile Layout -->
+            {/* Mobile Layout */}
             <div class="md:hidden flex flex-col py-4 relative group-hover:bg-white/2 px-1">
-              <!-- Date & Reading Time -->
+              {/* Date & Reading Time */}
               <div class="text-[11px] text-neutral-300 font-mono tracking-tighter flex items-center mb-1.5">
                 <div class="w-1.5 h-1.5 bg-neutral-300 mr-2 shrink-0"></div>
                 {post.pubDate.toISOString().split('T')[0].replace(/-/g, '.')} &nbsp;&bull;&nbsp; {post.readTimeMinutes} min read
               </div>
               
-              <!-- Title -->
+              {/* Title */}
               <div class="text-[18px] text-neutral-100 font-normal leading-tight pr-8">
                 {post.title}
               </div>

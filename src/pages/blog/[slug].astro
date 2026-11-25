@@ -163,31 +163,31 @@ const seo = post
         </div>
       </header>
 
-      <!-- Reading Content Grid (Desktop: Center Reading Column + Sticky Right TOC) -->
+      {/* Reading Content Grid (Desktop: Center Reading Column + Sticky Right TOC) */}
       <div class="reading-content-grid flex flex-col lg:flex-row items-start justify-center gap-8 lg:gap-12 max-w-6xl mx-auto">
         
-        <!-- Primary Reading Center Column -->
+        {/* Primary Reading Center Column */}
         <div class="reading-column w-full max-w-3xl min-w-0">
-          <!-- TL;DR Executive Summary -->
+          {/* TL;DR Executive Summary */}
           <TldrBox
             summary={post.description}
             takeaways={post.tldrTakeaways}
             tags={post.tags.slice(0, 3)}
           />
 
-          <!-- In-Article Table of Contents (Strictly Mobile/Tablet only, hidden on lg+) -->
+          {/* In-Article Table of Contents (Strictly Mobile/Tablet only, hidden on lg+) */}
           <TableOfContents headings={parsed.headings} variant="mobile" />
 
-          <!-- Zen Body Prose -->
+          {/* Zen Body Prose */}
           <article class="content w-full prose prose-invert prose-zinc max-w-none text-zinc-300 text-base sm:text-[17px] leading-relaxed font-sans prose-headings:font-bold prose-headings:tracking-tight prose-headings:text-neutral-100 prose-a:text-lime-400 prose-a:no-underline hover:prose-a:underline prose-code:text-lime-300">
             <BlockRenderer segments={parsed.segments} />
           </article>
 
-          <!-- Article Milestone Footer -->
+          {/* Article Milestone Footer */}
           <ArticleFooter currentTitle={post.title} type="blog" author={post.author} />
         </div>
 
-        <!-- Desktop Sticky Table of Contents (Strictly Desktop lg+ only, hidden on mobile) -->
+        {/* Desktop Sticky Table of Contents (Strictly Desktop lg+ only, hidden on mobile) */}
         <TableOfContents headings={parsed.headings} variant="desktop" />
       </div>
     </main>

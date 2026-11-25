@@ -25,6 +25,11 @@ export default defineConfig({
   trailingSlash: "never",
   vite: {
     plugins: [tailwindcss()],
+    server: {
+      watch: {
+        ignored: ["**/studio/**"],
+      },
+    },
   },
   integrations: [react()],
 });

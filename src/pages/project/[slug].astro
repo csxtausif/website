@@ -74,7 +74,7 @@ const seo = project
     <MediaLightbox />
 
     <main class="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-24 font-sans text-neutral-100">
-      <!-- Breadcrumb Bar -->
+      {/* Breadcrumb Bar */}
       <nav class="breadcrumb-nav flex items-center gap-2 text-xs font-mono text-zinc-400 mb-6 flex-wrap">
         <a href="/" class="hover:text-lime-400 transition-colors">[H] HOME</a>
         <span class="text-zinc-600">/</span>
@@ -85,9 +85,9 @@ const seo = project
         </span>
       </nav>
 
-      <!-- Project Hero Header Card -->
+      {/* Project Hero Header Card */}
       <header class="max-w-4xl mx-auto mb-10 bg-zinc-950/80 border border-zinc-800 p-6 sm:p-10 rounded-xl relative overflow-hidden shadow-2xl">
-        <!-- Background Ambient Glow -->
+        {/* Background Ambient Glow */}
         <div
           class="absolute -right-16 -top-16 w-56 h-56 bg-lime-400/10 blur-3xl rounded-full pointer-events-none"
         >
@@ -95,7 +95,7 @@ const seo = project
 
         <div class="relative z-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div>
-            <!-- Tag Pills & Version -->
+            {/* Tag Pills & Version */}
             <div class="flex flex-wrap items-center gap-2 mb-4">
               {project.tags.map((tag: string) => (
                 <span class="inline-flex items-center rounded-xs bg-zinc-900 border border-zinc-800 px-2.5 py-1 text-[11px] font-mono font-bold text-lime-400 uppercase tracking-widest">
@@ -109,18 +109,18 @@ const seo = project
               )}
             </div>
 
-            <!-- Main Title -->
+            {/* Main Title */}
             <h1 class="text-3xl sm:text-5xl font-extrabold text-neutral-100 tracking-tight leading-[1.12] mb-4 font-sans">
               {project.title}
             </h1>
 
-            <!-- Tagline -->
+            {/* Tagline */}
             <p class="text-base sm:text-lg text-neutral-400 max-w-2xl leading-relaxed m-0 font-sans">
               {project.description}
             </p>
           </div>
 
-          <!-- Action / Metadata Side -->
+          {/* Action / Metadata Side */}
           <div class="article-meta-strip flex flex-row flex-wrap md:flex-col gap-3 items-start md:items-end shrink-0 pt-2 border-t md:border-t-0 border-zinc-800">
             <div class="flex items-center gap-2.5">
               {project.liveUrl && (
@@ -175,31 +175,31 @@ const seo = project
         </div>
       </header>
 
-      <!-- Reading Content Grid (Desktop: Center Reading Column + Sticky Right TOC) -->
+      {/* Reading Content Grid (Desktop: Center Reading Column + Sticky Right TOC) */}
       <div class="reading-content-grid flex flex-col lg:flex-row items-start justify-center gap-8 lg:gap-12 max-w-6xl mx-auto">
         
-        <!-- Primary Reading Center Column -->
+        {/* Primary Reading Center Column */}
         <div class="reading-column w-full max-w-3xl min-w-0">
-          <!-- TL;DR Executive Summary -->
+          {/* TL;DR Executive Summary */}
           <TldrBox
             summary={project.description}
             takeaways={project.tldrTakeaways}
             tags={project.tags}
           />
 
-          <!-- In-Article Table of Contents (Strictly Mobile/Tablet only, hidden on lg+) -->
+          {/* In-Article Table of Contents (Strictly Mobile/Tablet only, hidden on lg+) */}
           <TableOfContents headings={parsed.headings} variant="mobile" />
 
-          <!-- Zen Body Prose -->
+          {/* Zen Body Prose */}
           <article class="content w-full prose prose-invert prose-zinc max-w-none text-zinc-300 text-base sm:text-[17px] leading-relaxed font-sans prose-headings:font-bold prose-headings:tracking-tight prose-headings:text-neutral-100 prose-a:text-lime-400 prose-a:no-underline hover:prose-a:underline prose-code:text-lime-300">
             <BlockRenderer segments={parsed.segments} />
           </article>
 
-          <!-- Project Milestone Footer -->
+          {/* Project Milestone Footer */}
           <ArticleFooter currentTitle={project.title} type="project" />
         </div>
 
-        <!-- Desktop Sticky Table of Contents (Strictly Desktop lg+ only, hidden on mobile) -->
+        {/* Desktop Sticky Table of Contents (Strictly Desktop lg+ only, hidden on mobile) */}
         <TableOfContents headings={parsed.headings} variant="desktop" />
       </div>
     </main>

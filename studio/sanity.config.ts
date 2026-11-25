@@ -6,9 +6,15 @@ import { schemaTypes } from "./schemaTypes";
 const projectId = process.env.SANITY_STUDIO_PROJECT_ID || process.env.SANITY_PROJECT_ID || "";
 const dataset = process.env.SANITY_STUDIO_DATASET || process.env.SANITY_DATASET || "production";
 
+if (!projectId) {
+  console.warn(
+    "\n⚠️  Missing SANITY_STUDIO_PROJECT_ID in studio/.env (see studio/.env.example). Studio requires a valid Sanity projectId.\n"
+  );
+}
+
 export default defineConfig({
-  name: "buildwithtausif-studio",
-  title: "buildwithtausif CMS",
+  name: "csxtausif-studio",
+  title: "csxtausif CMS",
   projectId,
   dataset,
   plugins: [
