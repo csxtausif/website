@@ -7,7 +7,7 @@ function readEnv(key: string): string {
 }
 
 export const POST: APIRoute = async ({ request, url, site }) => {
-  const expectedSecret = readEnv("REVALIDATE_SECRET");
+  const expectedSecret = readEnv("REVALIDATE_SECRET") || readEnv("REVALIDATION_SECRET");
   const providedSecret =
     request.headers.get("x-revalidate-secret") || url.searchParams.get("secret") || "";
 

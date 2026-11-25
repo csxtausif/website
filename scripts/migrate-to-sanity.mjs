@@ -9,6 +9,14 @@ import fs from "node:fs";
 import path from "node:path";
 import { createClient } from "@sanity/client";
 
+// Auto-load root .env and .env.local if present (Node 20.12+)
+for (const envFile of [".env", ".env.local"]) {
+  const envPath = path.join(process.cwd(), envFile);
+  if (fs.existsSync(envPath) && typeof process.loadEnvFile === "function") {
+    process.loadEnvFile(envPath);
+  }
+}
+
 const projectId = process.env.SANITY_PROJECT_ID;
 const dataset = process.env.SANITY_DATASET || "production";
 const token = process.env.SANITY_API_WRITE_TOKEN;
