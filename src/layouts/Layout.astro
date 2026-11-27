@@ -3,6 +3,7 @@ import "../styles/global.css";
 import "../styles/fontfamily.css";
 import { Image } from "astro:assets";
 import Navigation from "@components/navigation.astro";
+import Preloader from "@components/Preloader.astro";
 import Socials from "@components/socials.astro";
 import Footer from "@components/footer.astro";
 import SmoothScrollIsland from "@components/SmoothScrollIsland";
@@ -71,6 +72,7 @@ const ogImageURL = imageUrl ? new URL(imageUrl, siteOrigin).toString() : (seo.im
     <BaseLayout url={Astro.url.origin} />
   </head>
   <body class="min-h-screen scanline-bg">
+    <Preloader />
     <!-- Google Tag Manager (noscript) -->
     <noscript
       ><iframe

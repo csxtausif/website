@@ -4,32 +4,67 @@ import github from "@res/images/icons/github.svg";
 import linkedin from "@res/images/icons/linkedin.svg";
 import mail from "@res/images/icons/mail.svg";
 import twitter from "@res/images/icons/x.svg";
+import { getSocialLinks } from "@lib/cms/queries";
+
+const cmsSocials = await getSocialLinks();
+
+const DEFAULT_SOCIALS = {
+  heading: "Connect:-",
+  github: "https://github.com/csxtausif",
+  linkedin: "https://www.linkedin.com/in/buildwithtausif/",
+  x: "https://x.com/csxtausif",
+  email: "connect.tausifalam@outlook.com",
+  emailSubject: "[FromWebsite]:[Please add your subject here]",
+};
+
+const socials = cmsSocials ?? DEFAULT_SOCIALS;
+const heading = socials.heading || DEFAULT_SOCIALS.heading;
+
+function buildMailtoHref(email?: string, subject?: string): string | undefined {
+  if (!email) return undefined;
+  const trimmed = email.trim();
+  if (!trimmed) return undefined;
+  if (trimmed.toLowerCase().startsWith("mailto:")) return trimmed;
+  const subj = subject?.trim();
+  return subj ? `mailto:${trimmed}?subject=${encodeURIComponent(subj)}` : `mailto:${trimmed}`;
+}
+
+const emailHref = buildMailtoHref(
+  socials.email,
+  socials.emailSubject ?? DEFAULT_SOCIALS.emailSubject
+);
 ---
 
 <h1 class="text-lg mt-5 text-lime-400 text-center press-start-2p-regular">
-  Connect:-
+  {heading}
 </h1>
 <ul class="flex gap-5 mt-5 justify-center items-center">
-  <li>
-    <a href="https://github.com/csxtausif" target="_blank">
-      <Image src={github} alt="Github" width="24" height="24" />
-    </a>
-  </li>
-  <li>
-    <a href="https://www.linkedin.com/in/buildwithtausif/" target="_blank">
-      <Image src={linkedin} alt="Linkedin" width="24" height="24" />
-    </a>
-  </li>
-  <li>
-    <a href="https://x.com/csxtausif" target="_blank">
-      <Image src={twitter} alt="Twitter" width="24" height="24" />
-    </a>
-  </li>
-  <li>
-    <a
-      href="mailto:connect.tausifalam@outlook.com?subject=[FromWebsite]:[Please add your subject here]"
-    >
-      <Image src={mail} alt="Email" width="24" height="24" />
-    </a>
-  </li>
+  {socials.github && (
+    <li>
+      <a href={socials.github} target="_blank" rel="noopener noreferrer">
+        <Image src={github} alt="Github" width="24" height="24" />
+      </a>
+    </li>
+  )}
+  {socials.linkedin && (
+    <li>
+      <a href={socials.linkedin} target="_blank" rel="noopener noreferrer">
+        <Image src={linkedin} alt="Linkedin" width="24" height="24" />
+      </a>
+    </li>
+  )}
+  {socials.x && (
+    <li>
+      <a href={socials.x} target="_blank" rel="noopener noreferrer">
+        <Image src={twitter} alt="Twitter" width="24" height="24" />
+      </a>
+    </li>
+  )}
+  {emailHref && (
+    <li>
+      <a href={emailHref}>
+        <Image src={mail} alt="Email" width="24" height="24" />
+      </a>
+    </li>
+  )}
 </ul>

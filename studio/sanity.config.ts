@@ -24,6 +24,10 @@ export default defineConfig({
           .title("Content")
           .items([
             S.listItem()
+              .title("Homepage Content")
+              .id("homePageSettings")
+              .child(S.document().schemaType("homePageSettings").documentId("homePageSettings")),
+            S.listItem()
               .title("Site SEO & Settings")
               .id("siteSeoSettings")
               .child(S.document().schemaType("siteSeoSettings").documentId("siteSeoSettings")),

@@ -19,8 +19,8 @@ interface Props {
 const props = Astro.props;
 const fluidTitleRaw = props["data-fluid-title"] || props["data-fluid-text"];
 const fixedTitleRaw = props["data-fixed-title"] || "";
-const runInfinite = props["run-infinite"] !== undefined && props["run-infinite"] !== "false";
-const fluidOnNewLine = props.fluidOnNewLine !== undefined && props.fluidOnNewLine !== "false";
+const runInfinite = props["run-infinite"] !== undefined && props["run-infinite"] !== false && props["run-infinite"] !== "false";
+const fluidOnNewLine = props.fluidOnNewLine !== undefined && props.fluidOnNewLine !== false && props.fluidOnNewLine !== "false";
 const className = props.class || "";
 const id = props.id || "";
 
@@ -407,6 +407,14 @@ Object.keys(htmlProps).forEach(key => {
     }
   }
 
+  function runWhenPreloaderDone(callback: () => void) {
+    if (!(window as any).__sitePreloaderActive) {
+      callback();
+      return;
+    }
+    window.addEventListener("site:preloader-done", callback, { once: true });
+  }
+
   function initScramblers() {
     const containers = document.querySelectorAll('.scrambling-container');
     containers.forEach(container => {
@@ -418,31 +426,31 @@ Object.keys(htmlProps).forEach(key => {
       const fixedEffect = container.getAttribute('data-fixed-effect');
       const renderFirst = container.getAttribute('data-fixed-render-first') === 'true';
 
-      let fixedPromise = Promise.resolve();
-      if (fixedEl && fixedText && fixedEffect) {
-        const fixedScrambler = new Scrambler(fixedEl, [{ text: fixedText, effect: fixedEffect }], { infinite: false, count: 1, delay: 0, renderFirst: renderFirst });
-        fixedPromise = fixedScrambler.start();
-      }
+      const fixedScrambler = fixedEl && fixedText && fixedEffect
+        ? new Scrambler(fixedEl, [{ text: fixedText, effect: fixedEffect }], { infinite: false, count: 1, delay: 0, renderFirst: renderFirst })
+        : null;
 
       const fluidEl = container.querySelector('.fluid-text') as HTMLElement;
-      if (!fluidEl) return;
-      
       const titlesAttr = container.getAttribute('data-fluid-titles');
-      if (!titlesAttr) return;
-      
-      const titles = JSON.parse(titlesAttr);
+      const titles = titlesAttr ? JSON.parse(titlesAttr) : [];
       const infinite = container.getAttribute('data-run-infinite') === 'true';
       const count = parseInt(container.getAttribute('data-run-count') || '1', 10);
       const delay = parseInt(container.getAttribute('data-run-delay') || '2000', 10);
-      
-      if (titles.length > 0) {
-        const scrambler = new Scrambler(fluidEl, titles, { infinite, count, delay, renderFirst });
-        if (renderFirst && fixedEffect) {
-          fixedPromise.then(() => scrambler.start());
-        } else {
-          scrambler.start();
+
+      const fluidScrambler = fluidEl && titles.length > 0
+        ? new Scrambler(fluidEl, titles, { infinite, count, delay, renderFirst })
+        : null;
+
+      runWhenPreloaderDone(() => {
+        const fixedPromise = fixedScrambler ? fixedScrambler.start() : Promise.resolve();
+        if (fluidScrambler) {
+          if (renderFirst && fixedEffect) {
+            fixedPromise.then(() => fluidScrambler.start());
+          } else {
+            fluidScrambler.start();
+          }
         }
-      }
+      });
     });
   }
 

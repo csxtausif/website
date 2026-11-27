@@ -5,6 +5,7 @@ import { tag } from "./documents/tag";
 import { blogPost } from "./documents/blogPost";
 import { project } from "./documents/project";
 import { siteSeoSettings } from "./documents/siteSeoSettings";
+import { homePageSettings } from "./documents/homePageSettings";
 
 export const schemaTypes = [
   seoMeta,
@@ -14,4 +15,5 @@ export const schemaTypes = [
   blogPost,
   project,
   siteSeoSettings,
+  homePageSettings,
 ];

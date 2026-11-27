@@ -143,6 +143,65 @@ export interface SiteSeoSettings {
   projectsIndexSeo?: SeoMeta | null;
 }
 
+export type TransitionEffect =
+  | "scramble"
+  | "upslide"
+  | "downslide"
+  | "braille"
+  | "glitch"
+  | "rgb-split"
+  | "vaporise"
+  | "ripple-dissolve"
+  | "pixellate"
+  | "strangerthings"
+  | "alien";
+
+export interface AnimationFluidItem {
+  text: string;
+  effect?: TransitionEffect;
+}
+
+export interface AnimationTitleSettings {
+  fixedText?: string;
+  fixedEffect?: TransitionEffect;
+  renderFixedFirst?: boolean;
+  fluidTexts?: AnimationFluidItem[];
+  fluidOnNewLine?: boolean;
+  runInfinite?: boolean;
+  runDelay?: number;
+}
+
+export interface SocialLinksSettings {
+  heading?: string;
+  github?: string;
+  linkedin?: string;
+  x?: string;
+  email?: string;
+  emailSubject?: string;
+}
+
+export interface EducationBadge {
+  label: string;
+  tone?: "lime" | "red" | "zinc";
+}
+
+export interface EducationTimelineItem {
+  title: string;
+  period?: string;
+  institution?: string;
+  location?: string;
+  isCurrent?: boolean;
+  badges?: EducationBadge[];
+}
+
+export interface HomePageSettings {
+  animationTitle?: AnimationTitleSettings;
+  bio?: unknown[];
+  socials?: SocialLinksSettings;
+  educationTitle?: string;
+  educationTimeline?: EducationTimelineItem[];
+}
+
 export interface OgRouteData {
   title: string;
   description?: string;

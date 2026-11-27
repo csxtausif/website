@@ -6,7 +6,10 @@ import ScramblingTitle from "@components/ScramblingTitle.astro";
 import Featured from "@components/featured.astro";
 import Terminal from "@components/terminal.astro";
 import ProjectShowcase from "@components/ProjectShowcase.astro";
-import { getSiteSeoSettings } from "@lib/cms/queries";
+import BlockRenderer from "@components/cms/BlockRenderer.astro";
+import { getHomePageSettings, getSiteSeoSettings } from "@lib/cms/queries";
+import { parsePortableBody } from "@lib/cms/portableText";
+import type { EducationBadge, EducationTimelineItem } from "@lib/cms/types";
 import { resolveCmsSeo } from "@utils/seoConfig";
 import { setEdgeCacheHeaders } from "@utils/cache";
 // images
@@ -15,7 +18,11 @@ import swissKnife from "@res/images/icons/swiss_knife.svg";
 export const prerender = false;
 setEdgeCacheHeaders(Astro.response.headers);
 
-const siteSettings = await getSiteSeoSettings();
+const [siteSettings, homeContent] = await Promise.all([
+  getSiteSeoSettings(),
+  getHomePageSettings(),
+]);
+
 const seo = resolveCmsSeo(
   "/",
   {
@@ -26,6 +33,53 @@ const seo = resolveCmsSeo(
   },
   siteSettings?.homeSeo
 );
+
+const anim = homeContent?.animationTitle;
+const fixedTitle = {
+  text: anim?.fixedText ?? "Hey There,",
+  effect: anim?.fixedEffect ?? ("scramble" as const),
+  renderFirst: anim?.renderFixedFirst ?? true,
+};
+const fluidTitles = anim?.fluidTexts?.map((item) => ({
+  text: item.text,
+  effect: item.effect || ("scramble" as const),
+}));
+const fluidOnNewLine = anim?.fluidOnNewLine ?? true;
+const runInfinite = anim?.runInfinite ?? true;
+const runDelay = anim?.runDelay ?? 2000;
+
+const bioParsed = homeContent?.bio?.length ? parsePortableBody(homeContent.bio) : null;
+
+const DEFAULT_EDUCATION: EducationTimelineItem[] = [
+  {
+    title: "Bachelor's of Computer Application",
+    period: "2025 — 2028 (Present)",
+    institution: "Guru Gobind Singh Indraprastha University",
+    location: "Delhi, India",
+    isCurrent: true,
+    badges: [
+      { label: "Current SGPA: 9.64", tone: "lime" },
+      { label: "CGPA: 9.55", tone: "red" },
+    ],
+  },
+  {
+    title: "High School - PCM (2023-2024)",
+    isCurrent: false,
+    badges: [{ label: "CGPA: 8.45", tone: "zinc" }],
+  },
+];
+
+const educationTitle = homeContent?.educationTitle || "Education Timeline";
+const educationItems =
+  homeContent?.educationTimeline && homeContent.educationTimeline.length > 0
+    ? homeContent.educationTimeline
+    : DEFAULT_EDUCATION;
+
+const BADGE_CLASSES: Record<NonNullable<EducationBadge["tone"]>, string> = {
+  lime: "bg-lime-400/10 text-lime-400 ring-lime-400/20",
+  red: "bg-lime-400/10 text-red-400 ring-red-400/20",
+  zinc: "bg-zinc-800/50 text-zinc-500 ring-zinc-700",
+};
 ---
 
 <Layout
@@ -42,38 +96,42 @@ const seo = resolveCmsSeo(
   <div slot="no-bs-zone" class="w-full flex flex-col gap-6 md:px-6">
     <ScramblingTitle
       heading-1
-      fluidOnNewLine
+      fluidOnNewLine={fluidOnNewLine}
       id="scrambling-title"
       class="press-start-2p-regular text-lime-400 text-2xl lg:text-3xl mt-4"
-      data-fixed-title={{
-        text: "Hey There,",
-        effect: "scramble",
-        renderFirst: true,
-      }}
-      run-delay={2000}
+      data-fixed-title={fixedTitle}
+      data-fluid-title={fluidTitles && fluidTitles.length > 0 ? fluidTitles : undefined}
+      run-infinite={runInfinite}
+      run-delay={runDelay}
     />
     <div class="prose prose-invert max-w-none text-zinc-300 leading-loose">
-      <p class="aboutme">
-        You’ve found my corner of the internet. I’m Tausif — a <b
-          class="text-lime-400">software engineer</b
-        > I share my thoughts, insights, projects and sometimes a philosophical rant,
-        welcome to my oasis!
-        <br />
-        If you’re looking for someone to help bring your ideas to life, take a look
-        at my
-        <a href="/projects" class="text-lime-400">projects</a>
-        for a glimpse of what I build. And if you’d like to understand how I think,
-        check out my
-        <a href="/blog" class="text-lime-400">blog</a>.
-        <br />
-        Want to connect? Reach out via email —
-        <a
-          href="mailto:connect.tausifalam@outlook.com?subject=[FromWebsite]:[Please add your subject here]"
-          class="text-lime-400"
-        >
-          click here
-        </a>
-      </p>
+      {bioParsed ? (
+        <div class="aboutme [&_strong]:text-lime-400 [&_b]:text-lime-400 [&_a]:text-lime-400">
+          <BlockRenderer segments={bioParsed.segments} />
+        </div>
+      ) : (
+        <p class="aboutme">
+          You’ve found my corner of the internet. I’m Tausif — a <b
+            class="text-lime-400">software engineer</b
+          > I share my thoughts, insights, projects and sometimes a philosophical rant,
+          welcome to my oasis!
+          <br />
+          If you’re looking for someone to help bring your ideas to life, take a look
+          at my
+          <a href="/projects" class="text-lime-400">projects</a>
+          for a glimpse of what I build. And if you’d like to understand how I think,
+          check out my
+          <a href="/blog" class="text-lime-400">blog</a>.
+          <br />
+          Want to connect? Reach out via email —
+          <a
+            href="mailto:connect.tausifalam@outlook.com?subject=[FromWebsite]:[Please add your subject here]"
+            class="text-lime-400"
+          >
+            click here
+          </a>
+        </p>
+      )}
       <ProjectShowcase />
       <!-- Skills (in my forge) -->
       <div class="skill-heading flex flex-row items-center gap-4 my-8">
@@ -111,74 +169,101 @@ const seo = resolveCmsSeo(
       <!-- Education timeline -->
       <p class="mt-8">
         <span class="bg-lime-400 text-stone-900 px-2 font-bold"
-          >Education Timeline</span
+          >{educationTitle}</span
         >
       </p>
 
       <ul
         class="relative border-l border-zinc-700 ml-3 md:ml-4 mt-6 mb-4 list-none p-0"
       >
-        <!-- Current Degree -->
-        <li class="mb-10 ml-8 relative p-0 m-0">
-          <span
-            class="absolute flex items-center justify-center w-4 h-4 rounded-full -left-[40px] top-1 bg-black ring-4 ring-black z-10"
-          >
-            <span
-              class="animate-ping absolute inline-flex h-full w-full rounded-full bg-lime-400 opacity-60"
-            ></span>
-            <span class="relative inline-flex rounded-full h-2 w-2 bg-lime-400"
-            ></span>
-          </span>
+        {educationItems.map((item, idx) => {
+          const isLast = idx === educationItems.length - 1;
+          if (item.isCurrent) {
+            return (
+              <li class={`${isLast ? "pb-6" : "mb-10"} ml-8 relative p-0 m-0`}>
+                <span
+                  class="absolute flex items-center justify-center w-4 h-4 rounded-full -left-[40px] top-1 bg-black ring-4 ring-black z-10"
+                >
+                  <span
+                    class="animate-ping absolute inline-flex h-full w-full rounded-full bg-lime-400 opacity-60"
+                  ></span>
+                  <span class="relative inline-flex rounded-full h-2 w-2 bg-lime-400"
+                  ></span>
+                </span>
 
-          <div class="flex flex-col gap-1 -mt-1.5">
-            <time
-              class="mb-1 text-xs font-mono font-normal leading-none text-lime-400/80"
-              >2025 &mdash; 2028 (Present)</time
-            >
-            <h3 class="text-lg font-bold text-white m-0">
-              Bachelor's of Computer Application
-            </h3>
-            <p class="mb-2 text-base font-normal text-zinc-400 m-0">
-              Guru Gobind Singh Indraprastha University<br />Delhi, India
-            </p>
-            <div class="mt-1">
-              <span
-                class="inline-flex items-center rounded-sm bg-lime-400/10 px-2 py-1 text-xs font-mono font-medium text-lime-400 ring-1 ring-inset ring-lime-400/20"
-              >
-                Current SGPA: 9.64
-              </span>
-              <span
-                class="inline-flex items-center rounded-sm bg-lime-400/10 px-2 py-1 text-xs font-mono font-medium text-red-400 ring-1 ring-inset ring-red-400/20"
-              >
-                CGPA: 9.55
-              </span>
-            </div>
-          </div>
-        </li>
+                <div class="flex flex-col gap-1 -mt-1.5">
+                  {item.period && (
+                    <time
+                      class="mb-1 text-xs font-mono font-normal leading-none text-lime-400/80"
+                    >
+                      {item.period}
+                    </time>
+                  )}
+                  <h3 class="text-lg font-bold text-white m-0">
+                    {item.title}
+                  </h3>
+                  {(item.institution || item.location) && (
+                    <p class="mb-2 text-base font-normal text-zinc-400 m-0">
+                      {item.institution}
+                      {item.institution && item.location && <br />}
+                      {item.location}
+                    </p>
+                  )}
+                  {item.badges && item.badges.length > 0 && (
+                    <div class="mt-1 flex flex-wrap gap-1.5">
+                      {item.badges.map((badge) => (
+                        <span
+                          class={`inline-flex items-center rounded-sm px-2 py-1 text-xs font-mono font-medium ring-1 ring-inset ${BADGE_CLASSES[badge.tone || "lime"]}`}
+                        >
+                          {badge.label}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </li>
+            );
+          }
 
-        <!-- Origin / Past indicator -->
-        <li class="ml-8 relative p-0 m-0 pb-6">
-          <span
-            class="absolute flex items-center justify-center w-3 h-3 rounded-full -left-[38px] top-1.5 bg-black ring-4 ring-black z-10"
-          >
-            <span
-              class="relative inline-flex rounded-full h-1.5 w-1.5 bg-zinc-600"
-            ></span>
-          </span>
-
-          <div class="flex flex-col gap-1 -mt-1">
-            <p class="text-sm font-mono italic text-zinc-600 m-0">
-              High School - PCM (2023-2024)
-            </p>
-            <div class="mt-1">
+          return (
+            <li class={`${isLast ? "pb-6" : "mb-10"} ml-8 relative p-0 m-0`}>
               <span
-                class="inline-flex items-center rounded-sm bg-zinc-800/50 px-2 py-1 text-xs font-mono text-zinc-500 ring-1 ring-inset ring-zinc-700"
+                class="absolute flex items-center justify-center w-3 h-3 rounded-full -left-[38px] top-1.5 bg-black ring-4 ring-black z-10"
               >
-                CGPA: 8.45
+                <span
+                  class="relative inline-flex rounded-full h-1.5 w-1.5 bg-zinc-600"
+                ></span>
               </span>
-            </div>
-          </div>
-        </li>
+
+              <div class="flex flex-col gap-1 -mt-1">
+                {item.period && (
+                  <time class="text-xs font-mono text-zinc-500">
+                    {item.period}
+                  </time>
+                )}
+                <p class="text-sm font-mono italic text-zinc-600 m-0">
+                  {item.title}
+                </p>
+                {(item.institution || item.location) && (
+                  <p class="text-xs font-normal text-zinc-500 m-0">
+                    {[item.institution, item.location].filter(Boolean).join(" • ")}
+                  </p>
+                )}
+                {item.badges && item.badges.length > 0 && (
+                  <div class="mt-1 flex flex-wrap gap-1.5">
+                    {item.badges.map((badge) => (
+                      <span
+                        class={`inline-flex items-center rounded-sm px-2 py-1 text-xs font-mono ring-1 ring-inset ${BADGE_CLASSES[badge.tone || "zinc"]}`}
+                      >
+                        {badge.label}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </li>
+          );
+        })}
         <!-- Line fade out -->
         <div
           class="absolute bottom-0 -left-px w-[3px] h-20 bg-linear-to-t from-[#000000] via-[#000000]/80 to-transparent z-0"
